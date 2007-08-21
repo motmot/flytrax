@@ -1,0 +1,648 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="PER_CAM_PANEL">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>tracking control</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="TAKE_BG_IMAGE">
+              <label>clear and take new background image</label>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>2</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="LOAD_BG_IMAGE">
+              <label>load background image...</label>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>2</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="TAKE_BG_IMAGE_ALLOW_WHEN_SAVING">
+              <label>Allow when saving output</label>
+              <checked>0</checked>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticBoxSizer">
+              <label>Ongoing background image updates</label>
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxVERTICAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxCheckBox" name="ONGOING_BG_UPDATES">
+                      <label>Enable ongoing updates</label>
+                    </object>
+                    <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxFlexGridSizer">
+                      <cols>2</cols>
+                      <object class="sizeritem">
+                        <object class="wxStaticText">
+                          <label>Num images:</label>
+                        </object>
+                        <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                      </object>
+                      <rows>2</rows>
+                      <growablecols>1</growablecols>
+                      <object class="sizeritem">
+                        <object class="wxTextCtrl" name="NUM_BACKGROUND_IMAGES"/>
+                        <option>1</option>
+                        <flag>wxEXPAND</flag>
+                      </object>
+                      <object class="sizeritem">
+                        <object class="wxStaticText">
+                          <label>Update interval (num. frames):</label>
+                        </object>
+                        <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                      </object>
+                      <object class="sizeritem">
+                        <object class="wxTextCtrl" name="BACKGROUND_IMAGE_UPDATE_INTERVAL"/>
+                        <option>1</option>
+                        <flag>wxEXPAND</flag>
+                      </object>
+                    </object>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+              </object>
+            </object>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>8</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticLine"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Difference threshold:</label>
+                </object>
+                <flag>wxALL</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="DIFF_THRESHOLD">
+                  <style>wxTE_PROCESS_ENTER</style>
+                  <tooltip>Threshold of minimum difference from mean image</tooltip>
+                </object>
+              </object>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="USE_ROI2">
+              <label>Use software ROI</label>
+              <checked>1</checked>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>2</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Clear threshold:</label>
+                </object>
+                <flag>wxALL</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="CLEAR_THRESHOLD">
+                  <style>wxTE_PROCESS_ENTER</style>
+                  <tooltip>Fraction of found pixel value to clear (reduces moment arm)</tooltip>
+                </object>
+              </object>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="TRACKING_ENABLED">
+              <label>Tracking enabled</label>
+              <checked>0</checked>
+              <font>
+                <size>14</size>
+                <family>default</family>
+                <style>normal</style>
+                <weight>bold</weight>
+                <underlined>0</underlined>
+                <face>Sans</face>
+              </font>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>2</border>
+          </object>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>save to disk control</label>
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxFlexGridSizer">
+                  <cols>2</cols>
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>save data prefix:</label>
+                    </object>
+                    <flag>wxALL</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="SAVE_DATA_PREFIX">
+                      <value>DATA</value>
+                      <style>wxTE_PROCESS_ENTER</style>
+                    </object>
+                    <option>1</option>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>save Nth frame:</label>
+                    </object>
+                    <flag>wxALL</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="SAVE_NTH_FRAME">
+                      <value>1</value>
+                      <style>wxTE_PROCESS_ENTER</style>
+                    </object>
+                    <option>1</option>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                  <growablecols>1</growablecols>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="START_RECORDING">
+                      <label>record</label>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="STOP_RECORDING">
+                      <label>stop</label>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="SAVE_STATUS">
+                      <label>not saving</label>
+                      <font>
+                        <size>14</size>
+                        <family>default</family>
+                        <style>normal</style>
+                        <weight>bold</weight>
+                        <underlined>0</underlined>
+                        <face>Sans</face>
+                      </font>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTRE</flag>
+                    <border>2</border>
+                  </object>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxStaticBoxSizer">
+              <label>display control</label>
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>History buffer length:</label>
+                    </object>
+                    <flag>wxALL</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="HISTORY_BUFFER_LENGTH">
+                      <value></value>
+                      <style>wxTE_PROCESS_ENTER</style>
+                      <tooltip>Threshold of minimum difference from mean image</tooltip>
+                    </object>
+                    <option>1</option>
+                  </object>
+                </object>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="EDIT_MASK_BUTTON">
+              <label>Edit mask...</label>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>10</border>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+  <object class="wxFrame" name="FLYTRAX_FRAME">
+    <title>FlyTrax</title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxNotebook" name="FLYTRAX_NOTEBOOK">
+                  <object class="notebookpage">
+                    <label></label>
+                    <object class="wxPanel" name="NO_CAM_PANEL">
+                      <object class="wxBoxSizer">
+                        <orient>wxVERTICAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>No cameras connected</label>
+                          </object>
+                        </object>
+                      </object>
+                    </object>
+                    <selected>1</selected>
+                  </object>
+                </object>
+                <option>1</option>
+                <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+                <border>10</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticBoxSizer">
+                  <label>realtime output control</label>
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxCheckBox" name="SEND_TO_IP_ENABLED">
+                      <label>send data to 0 receiver(s)</label>
+                      <checked>0</checked>
+                    </object>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="EDIT_UDP_RECEIVERS">
+                      <label>Edit sendto list...</label>
+                    </object>
+                    <option>1</option>
+                  </object>
+                </object>
+                <option>0</option>
+                <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+                <border>10</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxButton" name="EDIT_GLOBAL_OPTIONS">
+                  <label>options...</label>
+                  <style></style>
+                </object>
+                <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTRE_HORIZONTAL</flag>
+                <border>10</border>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxBOTTOM|wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxFlexGridSizer">
+              <cols>1</cols>
+              <rows>2</rows>
+              <object class="sizeritem">
+                <object class="wxStaticBoxSizer">
+                  <label>Live view</label>
+                  <orient>wxVERTICAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxPanel" name="LIVE_ROI_VIEW_PANEL">
+                      <size>100,100</size>
+                    </object>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticBoxSizer">
+                  <label>Live diff</label>
+                  <orient>wxVERTICAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxPanel" name="DIFF_VIEW_PANEL">
+                      <size>100,100</size>
+                    </object>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticBoxSizer">
+                  <label>Live bg</label>
+                  <orient>wxVERTICAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxPanel" name="BGROI_VIEW_PANEL">
+                      <size>100,100</size>
+                    </object>
+                    <flag>wxEXPAND</flag>
+                  </object>
+                </object>
+              </object>
+            </object>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+          </object>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxPanel">
+          <object class="wxBoxSizer">
+            <orient>wxHORIZONTAL</orient>
+            <object class="sizeritem">
+              <object class="wxPanel">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="STATUS_MESSAGE">
+                      <label></label>
+                    </object>
+                    <option>1</option>
+                    <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+                    <border>4</border>
+                  </object>
+                </object>
+                <style>wxSUNKEN_BORDER</style>
+              </object>
+              <option>1</option>
+              <flag>wxEXPAND</flag>
+            </object>
+            <object class="sizeritem">
+              <object class="wxPanel">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="STATUS_MESSAGE2">
+                      <label></label>
+                    </object>
+                    <option>1</option>
+                    <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+                    <border>4</border>
+                  </object>
+                </object>
+                <style>wxSUNKEN_BORDER</style>
+              </object>
+              <flag>wxEXPAND</flag>
+              <minsize>50,1</minsize>
+            </object>
+          </object>
+          <style>wxRAISED_BORDER</style>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="UDP_RECEIVER_DIALOG">
+    <title>FlyTrax sendto hosts</title>
+    <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="sizeritem">
+        <object class="wxListBox" name="UDP_RECEIVER_LIST">
+          <content/>
+          <style>wxLB_SINGLE</style>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_ADD">
+              <label>Add...</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_EDIT">
+              <label>Edit...</label>
+              <enabled>0</enabled>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_REMOVE">
+              <label>Remove</label>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="EDIT_MASK_DIALOG">
+    <title>Edit mask</title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxCheckBox" name="VIEW_MASK_CHECKBOX">
+          <label>view mask mode</label>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <cols>2</cols>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>center X</label>
+            </object>
+            <flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxSlider" name="MASK_X_CENTER">
+              <value></value>
+              <min></min>
+              <max>0</max>
+              <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
+              <tooltip>center (x)</tooltip>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>center Y</label>
+            </object>
+            <flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxSlider" name="MASK_Y_CENTER">
+              <value></value>
+              <min></min>
+              <max>0</max>
+              <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
+              <tooltip>center (y)</tooltip>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>radius</label>
+            </object>
+            <flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxSlider" name="MASK_RADIUS">
+              <value></value>
+              <min></min>
+              <max>0</max>
+              <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
+              <tooltip>radius</tooltip>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <growablecols>1</growablecols>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxTHICK_FRAME</style>
+  </object>
+  <object class="wxDialog" name="OPTIONS_DIALOG">
+    <title>FlyTrax options</title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>Save/display image size</label>
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxFlexGridSizer">
+              <cols>3</cols>
+              <rows>4</rows>
+              <vgap>2</vgap>
+              <hgap>2</hgap>
+              <growablecols>1</growablecols>
+              <growablecols>2</growablecols>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label></label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>width</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>height</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Display</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_DISPLAY_WIDTH">
+                  <value>100</value>
+                  <enabled>0</enabled>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_DISPLAY_HEIGHT">
+                  <value>100</value>
+                  <enabled>0</enabled>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Save (.fmf)</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_SAVE_FMF_WIDTH">
+                  <value>100</value>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_SAVE_FMF_HEIGHT">
+                  <value>100</value>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Send (UDP)</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_SEND_WIDTH">
+                  <value>20</value>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI_SEND_HEIGHT">
+                  <value>20</value>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>2</border>
+          </object>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxTHICK_FRAME</style>
+  </object>
+</resource>

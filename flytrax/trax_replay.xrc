@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="TRAX_REPLAY_FRAME">
+    <title>trax replay</title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxButton" name="LOAD_TRX_BUTTON">
+          <label>Load .trx file</label>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="PLAY_FRAMES">
+          <label>play frames</label>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxPanel" name="MAIN_DISPLAY_PANEL">
+          <size>640,480</size>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+    </object>
+  </object>
+</resource>
