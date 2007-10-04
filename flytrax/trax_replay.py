@@ -7,7 +7,7 @@ import FlyMovieFormat
 import numpy
 import FastImage
 from wxwrap import wx
-import wxPython.xrc as xrc
+import wx.xrc as xrc
 import pkg_resources
 import wxglvideo
 import time, Queue, threading, os
