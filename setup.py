@@ -1,12 +1,12 @@
 from setuptools import setup
 
-from motmot_utils import get_svnversion_persistent
-version_str = '0.4.dev%(svnversion)s'
-version = get_svnversion_persistent('flytrax/version.py',version_str)
-
 setup(name='flytrax',
-      version=version,
+      description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
+      version='0.5.0',
       license='BSD',
+      author='Andrew Straw',
+      author_email='strawman@astraw.com',
+      url='http://code.astraw.com/projects/motmot',
       entry_points = {
     'cam_iface.fview_plugins':'flytrax = flytrax:Tracker',
     'console_scripts': [
