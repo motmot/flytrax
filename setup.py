@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name='flytrax',
       description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
-      version='0.5.0',
+      version='0.5.1',
       license='BSD',
       author='Andrew Straw',
       author_email='strawman@astraw.com',

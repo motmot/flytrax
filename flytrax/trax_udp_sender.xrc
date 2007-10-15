@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxDialog" name="UDP_RECEIVER_DIALOG">
+    <title>FlyTrax sendto hosts</title>
+    <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="sizeritem">
+        <object class="wxListBox" name="UDP_RECEIVER_LIST">
+          <content/>
+          <style>wxLB_SINGLE</style>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_ADD">
+              <label>Add...</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_EDIT">
+              <label>Edit...</label>
+              <enabled>0</enabled>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="UDP_REMOVE">
+              <label>Remove</label>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

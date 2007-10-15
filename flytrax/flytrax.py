@@ -24,6 +24,8 @@ from __future__ import division
 import sys, threading, Queue, time, socket, math, struct, os
 import traxio
 
+import trax_udp_sender
+
 import wxvideo
 import imops
 import FastImage
@@ -84,10 +86,15 @@ class LockedValue:
             pass
         return self._val
     
-class Tracker:
+class Tracker(trax_udp_sender.UDPSender):
     def __init__(self,wx_parent):
         self.wx_parent = wx_parent
         self.frame = RES.LoadFrame(self.wx_parent,"FLYTRAX_FRAME") # make frame main panel
+
+        trax_udp_sender.UDPSender.__init__(self,self.frame)
+        ctrl = xrc.XRCCTRL(self.frame,"EDIT_UDP_RECEIVERS")
+        ctrl.Bind( wx.EVT_BUTTON, self.OnEditUDPReceivers)
+        
         self.frame_nb = xrc.XRCCTRL(self.frame,"FLYTRAX_NOTEBOOK")
         self.status_message = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE")
         self.status_message2 = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE2")
@@ -217,23 +224,6 @@ class Tracker:
             self.send_over_ip.set()
         else:
             self.send_over_ip.clear()
-
-        ctrl = xrc.XRCCTRL(self.frame,"EDIT_UDP_RECEIVERS")
-        ctrl.Bind( wx.EVT_BUTTON, self.OnEditUDPReceivers)
-        self.edit_udp_receivers_dlg = RES.LoadDialog(self.frame,"UDP_RECEIVER_DIALOG")
-        
-#####################
-        
-        ctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_ADD")
-        ctrl.Bind(wx.EVT_BUTTON, self.OnUDPAdd )
-
-        ctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_EDIT")
-        wx.EVT_BUTTON(ctrl,ctrl.GetId(),self.OnUDPEdit)
-
-        ctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_REMOVE")
-        wx.EVT_BUTTON(ctrl,ctrl.GetId(),self.OnUDPRemove)
-
-#######################
         
         ctrl = xrc.XRCCTRL(self.frame,'EDIT_GLOBAL_OPTIONS')
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditGlobalOptions)
@@ -737,76 +727,6 @@ class Tracker:
         else:
             self.history_buflen_value[cam_id] = newval
         event.Skip()
-
-    def OnEnableSendToIP(self,event):
-        widget = event.GetEventObject()
-        if widget.IsChecked():
-            self.send_over_ip.set()
-        else:
-            self.send_over_ip.clear()
-
-    def OnEditUDPReceivers(self,event):
-        self.edit_udp_receivers_dlg.ShowModal()
-
-    def remote_hosts_changed(self):
-        listctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_RECEIVER_LIST")
-        n = listctrl.GetCount()
-        
-        self.remote_host_lock.acquire()
-        try:
-            if n > 0:
-                self.remote_host = []
-                for idx in range(n):
-                    self.remote_host.append( listctrl.GetClientData(idx) )
-            else:
-                self.remote_host = None
-        finally:
-            self.remote_host_lock.release()
-            self.remote_host_changed.set()
-
-        ctrl = xrc.XRCCTRL(self.frame,'SEND_TO_IP_ENABLED')
-        ctrl.SetLabel('send data to %d receiver(s)'%n)
-
-    def OnUDPAdd(self,event):
-        listctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_RECEIVER_LIST")
-        dlg = wx.TextEntryDialog(self.wx_parent,
-                                 'Please add the hostname',
-                                 )
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                hostname = dlg.GetValue()
-                try:
-                    ip = socket.gethostbyname(hostname)
-                except socket.gaierror, x:
-                    dlg2 = wx.MessageDialog(dlg,
-                                            'error getting IP address: '+str(x),
-                                            'FlyTrax: socket error',
-                                            wx.OK | wx.ICON_ERROR)
-                    dlg2.ShowModal()
-                    dlg2.Destroy()
-                else:
-                    remote_host = (ip, 28931)
-                    if hostname != '':
-                        toshow = hostname
-                    else:
-                        toshow = str(ip)
-                    idx = listctrl.Append( toshow )
-                    listctrl.SetClientData(idx,remote_host)
-                    self.remote_hosts_changed()                    
-        finally:
-            dlg.Destroy()
-
-    def OnUDPEdit(self,event):
-        widget = event.GetEventObject()
-        
-    def OnUDPRemove(self,event):
-        listctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_RECEIVER_LIST")
-        idx = listctrl.GetSelection()
-        if idx==wx.NOT_FOUND:
-            return
-        remote_host = listctrl.GetClientData(idx)
-        listctrl.Delete(idx)
-        self.remote_hosts_changed()                    
 
     def OnViewMaskMode(self,event):
         widget = event.GetEventObject()
