@@ -13,10 +13,6 @@ import wxglvideo
 import time, Queue, threading, os
 import sys
 
-VIS_DEBUG = False
-if VIS_DEBUG:
-    import pylab 
-
 RESFILE = pkg_resources.resource_filename(__name__,"trax_replay.xrc") # trigger extraction
 RES = xrc.wxXmlResource(RESFILE)
 
