@@ -24,7 +24,10 @@ from __future__ import division
 import sys, threading, Queue, time, socket, math, struct, os
 import traxio
 
-import trax_udp_sender
+try:
+    import trax_udp_sender
+except ImportError:
+    import flytrax.trax_udp_sender as trax_udp_sender
 
 import wxvideo
 import imops
