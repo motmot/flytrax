@@ -29,6 +29,7 @@ setup(name='flytrax',
       zip_safe=True,
       package_data = {'flytrax':['flytrax.xrc',
                                  'trax_replay.xrc',
+                                 'trax_udp_sender.xrc',
                                  'read_trx.m', # include matlab reader...
                                  ]},
       )
