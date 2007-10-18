@@ -2,6 +2,7 @@ import FlyMovieFormat
 import numpy as nx
 from numpy import nan
 import sys, struct
+import unittest
 
 header_fmt = 'iii'
 chunk_fmt_v1 = 'dddddd'
@@ -73,38 +74,47 @@ def readtrax(fname):
     all_vals = []
     while bufptr<len(buf):
         chunkbuf = buf[bufptr:bufptr+chunksz]
+        if len(chunkbuf) < chunksz:
+            # incomplete data, skip this point
+            break
         vals = struct.unpack( chunk_fmt, chunkbuf )
         all_vals.append(vals)
         bufptr+=chunksz
     return im, all_vals
 
-def test():
-    for version in VALID_VERSIONS:
-        a=nx.zeros((1200,1600),nx.uint8)
-        if version==1:
-            r1=nx.array((1,2,3,4,5,6),nx.float64)
-        elif version==2:
-            # include area
-            r1=nx.array((1,2,3,4,5,6,7),nx.float64)
-        r2 = r1*3.2
-        r1 = list(r1)
-        r2 = list(r2)
+def test_version(version,incomplete=False):
+    a=nx.zeros((1200,1600),nx.uint8)
+    if version==1:
+        r1=nx.array((1,2,3,4,5,6),nx.float64)
+    elif version==2:
+        # include area
+        r1=nx.array((1,2,3,4,5,6,7),nx.float64)
+    r2 = r1*3.2
+    r1 = list(r1)
+    r2 = list(r2)
 
-        fake_image = nx.zeros((10,10),nx.uint8)
-        ar1 = [fake_image]+r1
-        ar2 = [fake_image]+r2
+    fake_image = nx.zeros((10,10),nx.uint8)
+    ar1 = [fake_image]+r1
+    ar2 = [fake_image]+r2
 
-        fname = 'test_v%d'%version
-        f1 = TraxDataWriter(fname,a,version=version)
-        f1.write_data( *tuple(ar1) )
+    fname = 'test_v%d'%version
+    f1 = TraxDataWriter(fname,a,version=version)
+    f1.write_data( *tuple(ar1) )
+    f1.write_data( *tuple(ar2) )
+    if incomplete:
+        # simulate incomplete write operation
         f1.write_data( *tuple(ar2) )
-        f1.close()
+        f1.data_fd.seek(0,2)
+        where = f1.data_fd.tell()
+        f1.data_fd.seek(where-2,0)
+        f1.data_fd.truncate()
+    f1.close()
 
-        im,rows=readtrax(fname+'.trx')
-        assert nx.allclose(im,a)
-        assert nx.allclose(r1,rows[0])
-        assert nx.allclose(r2,rows[1])
-    print 'all tests passed'
+    im,rows=readtrax(fname+'.trx')
+    assert nx.allclose(im,a)
+    assert nx.allclose(r1,rows[0])
+    assert nx.allclose(r2,rows[1])
+#    print 'all tests passed'
 
 def print_info(fname_prefix):
     data_fname = fname_prefix+'.trx'
@@ -125,5 +135,21 @@ def print_info_main():
     fname_prefix = sys.argv[1]
     print_info(fname_prefix)
 
+class TestTraxIO(unittest.TestCase):
+    def test_fmt1(self):
+        test_version(1)
+    def test_fmt2(self):
+        test_version(2)
+        
+    def test_fmt1_incomplete(self):
+        test_version(1,incomplete=True)
+    def test_fmt2_incomplete(self):
+        test_version(2,incomplete=True)
+
+def get_test_suite():
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestTraxIO)
+    return suite
+
 if __name__=='__main__':
-    test()
+    for version in VALID_VERSIONS:
+        test_version(version)
