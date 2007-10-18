@@ -3,6 +3,7 @@ import numpy as nx
 from numpy import nan
 import sys, struct
 import unittest
+import os, tempfile, shutil
 
 header_fmt = 'iii'
 chunk_fmt_v1 = 'dddddd'
@@ -97,24 +98,28 @@ def test_version(version,incomplete=False):
     ar1 = [fake_image]+r1
     ar2 = [fake_image]+r2
 
-    fname = 'test_v%d'%version
-    f1 = TraxDataWriter(fname,a,version=version)
-    f1.write_data( *tuple(ar1) )
-    f1.write_data( *tuple(ar2) )
-    if incomplete:
-        # simulate incomplete write operation
+    dirname = tempfile.mkdtemp()
+    try:
+        fname = os.path.join(dirname,'test_v%d'%version)
+        f1 = TraxDataWriter(fname,a,version=version)
+        f1.write_data( *tuple(ar1) )
         f1.write_data( *tuple(ar2) )
-        f1.data_fd.seek(0,2)
-        where = f1.data_fd.tell()
-        f1.data_fd.seek(where-2,0)
-        f1.data_fd.truncate()
-    f1.close()
-
-    im,rows=readtrax(fname+'.trx')
+        if incomplete:
+            # simulate incomplete write operation
+            f1.write_data( *tuple(ar2) )
+            f1.data_fd.seek(0,2)
+            where = f1.data_fd.tell()
+            f1.data_fd.seek(where-2,0)
+            f1.data_fd.truncate()
+        f1.close()
+        
+        im,rows=readtrax(fname+'.trx')
+    finally:
+        shutil.rmtree(dirname)
+            
     assert nx.allclose(im,a)
     assert nx.allclose(r1,rows[0])
     assert nx.allclose(r2,rows[1])
-#    print 'all tests passed'
 
 def print_info(fname_prefix):
     data_fname = fname_prefix+'.trx'
