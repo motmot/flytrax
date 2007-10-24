@@ -40,7 +40,7 @@ import numpy
 
 import wxvalidatedtext as wxvt
 
-from wxwrap import wx
+import wx
 from wx import xrc
 import scipy.io.mio
 

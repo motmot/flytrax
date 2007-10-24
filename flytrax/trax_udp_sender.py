@@ -3,7 +3,7 @@ import pkg_resources
 
 import socket
 
-from wxwrap import wx
+import wx
 from wx import xrc
 
 RESFILE = pkg_resources.resource_filename(__name__,"trax_udp_sender.xrc") # trigger extraction

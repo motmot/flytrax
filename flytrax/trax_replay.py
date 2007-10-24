@@ -6,7 +6,7 @@ except ImportError:
 import FlyMovieFormat
 import numpy
 import FastImage
-from wxwrap import wx
+import wx
 import wx.xrc as xrc
 import pkg_resources
 import wxglvideo
