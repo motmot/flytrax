@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import pkg_resources
 
 import socket
@@ -35,7 +34,8 @@ class UDPSender(object):
         listctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_RECEIVER_LIST")
         n = listctrl.GetCount()
         
-        with self.remote_host_lock:
+        self.remote_host_lock.acquire()
+        try:
             self.remote_host_changed.set()
             if n > 0:
                 self.remote_host = []
@@ -43,6 +43,8 @@ class UDPSender(object):
                     self.remote_host.append( listctrl.GetClientData(idx) )
             else:
                 self.remote_host = None
+        finally:
+            self.remote_host_lock.release()
 
         ctrl = xrc.XRCCTRL(self.frame,'SEND_TO_IP_ENABLED')
         ctrl.SetLabel('send data to %d receiver(s)'%n)
