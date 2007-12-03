@@ -10,6 +10,18 @@ RES = xrc.EmptyXmlResource()
 RES.LoadFromString(open(RESFILE).read())
 
 class UDPSender(object):
+    """A base class for keeping track of a list of UDP receiver hostnames
+
+Use this class in the following way to get a list of hostnames to send data to:
+
+        with self.remote_host_lock:
+            # copy items out of list shared across threads
+            hosts = self.remote_host[:]
+
+        for host in hosts:
+            do_something_useful()
+
+    """
     def __init__(self,frame):
         self.frame = frame
         self.remote_host_lock = threading.Lock()
