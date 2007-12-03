@@ -53,7 +53,7 @@ DEBUGROI_IM=True
 class BufferAllocator:
     def __call__(self, w, h):
         return FastImage.FastImage8u(FastImage.Size(w,h))
-    
+
 class SharedValue:
     def __init__(self):
         self.evt = threading.Event()
@@ -74,7 +74,7 @@ class SharedValue:
         val = self._val
         self.evt.clear()
         return val
-    
+
 class LockedValue:
     def __init__(self,initial_value=None):
         self._val = initial_value
@@ -88,7 +88,7 @@ class LockedValue:
         except Queue.Empty:
             pass
         return self._val
-    
+
 class Tracker(trax_udp_sender.UDPSender):
     def __init__(self,wx_parent):
         self.wx_parent = wx_parent
@@ -97,39 +97,39 @@ class Tracker(trax_udp_sender.UDPSender):
         trax_udp_sender.UDPSender.__init__(self,self.frame)
         ctrl = xrc.XRCCTRL(self.frame,"EDIT_UDP_RECEIVERS")
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditUDPReceivers)
-        
+
         self.frame_nb = xrc.XRCCTRL(self.frame,"FLYTRAX_NOTEBOOK")
         self.status_message = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE")
         self.status_message2 = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE2")
         self.new_image = False
-        
+
         self.cam_ids = []
         self.process_frame_cam_ids = []
         self.pixel_format = {}
-        
+
         self.use_roi2 = {}
-        
+
         self.view_mask_mode = {}
         self.newmask = {}
-        
+
         self.data_queues = {}
         self.wxmessage_queues = {}
         self.trx_writer = {}
-        
+
         self.clear_and_take_bg_image = {}
         self.load_bg_image = {}
         self.enable_ongoing_bg_image = {}
-        
+
         self.save_nth_frame = {}
         self.ongoing_bg_image_num_images = {}
         self.ongoing_bg_image_update_interval = {}
-        
+
         self.tracking_enabled = {}
         self.realtime_analyzer = {}
         self.max_frame_size = {}
         self.full_frame_live = {}
         self.running_mean_im = {}
-        
+
         self.clear_threshold_value = {}
         self.new_clear_threshold = {}
         self.diff_threshold_value = {}
@@ -144,28 +144,26 @@ class Tracker(trax_udp_sender.UDPSender):
         self.realtime_mask_x_center = {} # only touch in RT thread
         self.realtime_mask_y_center = {} # only touch in RT thread
         self.realtime_mask_radius = {} # only touch in RT thread
-        
+
         self.new_mask_x_center = {}
         self.new_mask_y_center = {}
         self.new_mask_radius = {}
-        
+
         self.save_status_widget = {}
         self.save_data_prefix_widget = {}
-        
+
         self.widget2cam_id = {}
         self.edit_mask_dlg = {}
-        
+
         self.image_update_lock = threading.Lock()
 
         self.last_detection_list = [] # only used in realtime thread
-        
+
         self.bg_update_lock = threading.Lock()
 
         self.runthread_remote_host = None
-        self.remote_host_lock = threading.Lock()
-        self.remote_host_changed = threading.Event()
         self.send_over_ip = threading.Event()
-        
+
         self.remote_host = None
 
         self.sockobj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -173,7 +171,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.minimum_eccentricity = 1.5
 
         self.per_cam_panel = {}
-        
+
         self.ticks_since_last_update = {}
 
         if 1:
@@ -188,7 +186,7 @@ class Tracker(trax_udp_sender.UDPSender):
             box.Add(self.live_canvas,1,wx.EXPAND)
             live_roi_view_panel.SetAutoLayout(True)
             live_roi_view_panel.Layout()
-            
+
         if 1:
             # bgroi view
             bgroi_view_panel = xrc.XRCCTRL(self.frame,"BGROI_VIEW_PANEL")
@@ -200,7 +198,7 @@ class Tracker(trax_udp_sender.UDPSender):
             box.Add(self.bgroi_canvas,1,wx.EXPAND)
             bgroi_view_panel.SetAutoLayout(True)
             bgroi_view_panel.Layout()
-            
+
         if 1:
             # debugroi view
             debugroi_view_panel = xrc.XRCCTRL(self.frame,"DIFF_VIEW_PANEL")
@@ -212,14 +210,14 @@ class Tracker(trax_udp_sender.UDPSender):
             box.Add(self.debugroi_canvas,1,wx.EXPAND)
             debugroi_view_panel.SetAutoLayout(True)
             debugroi_view_panel.Layout()
-            
+
         self.roi_sz_lock = threading.Lock()
         self.roi_display_sz = FastImage.Size( 100, 100 ) # width, height
         self.roi_save_fmf_sz = FastImage.Size( 100, 100 ) # width, height
         self.roi_send_sz = FastImage.Size( 20, 20 ) # width, height
 
 ###############
-        
+
         send_to_ip_enabled_widget = xrc.XRCCTRL(self.frame,"SEND_TO_IP_ENABLED")
         send_to_ip_enabled_widget.Bind( wx.EVT_CHECKBOX,
                                         self.OnEnableSendToIP)
@@ -227,7 +225,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.send_over_ip.set()
         else:
             self.send_over_ip.clear()
-        
+
         ctrl = xrc.XRCCTRL(self.frame,'EDIT_GLOBAL_OPTIONS')
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditGlobalOptions)
         self.options_dlg = RES.LoadDialog(self.frame,"OPTIONS_DIALOG")
@@ -247,7 +245,7 @@ class Tracker(trax_udp_sender.UDPSender):
         wxvt.Validator(ctrl,ctrl.GetId(),self.OnSetROI,validate_roi_dimension)
         ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_DISPLAY_HEIGHT')
         wxvt.Validator(ctrl,ctrl.GetId(),self.OnSetROI,validate_roi_dimension)
-        
+
         ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_WIDTH')
         wxvt.Validator(ctrl,ctrl.GetId(),self.OnSetROI,validate_roi_dimension)
         ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_HEIGHT')
@@ -259,9 +257,9 @@ class Tracker(trax_udp_sender.UDPSender):
         wxvt.Validator(ctrl,ctrl.GetId(),self.OnSetROI,validate_roi_dimension)
 
         self.OnSetROI(None)
-        
+
 #######################
-        
+
 
         ID_Timer = wx.NewId()
         self.timer = wx.Timer(self.wx_parent, ID_Timer)
@@ -272,7 +270,7 @@ class Tracker(trax_udp_sender.UDPSender):
         ID_Timer = wx.NewId()
         self.timer_clear_message = wx.Timer(self.wx_parent, ID_Timer)
         wx.EVT_TIMER(self.wx_parent, ID_Timer, self.OnClearMessage)
-        
+
         self.full_bg_image = {}
         self.xrcid2validator = {}
 
@@ -301,7 +299,7 @@ class Tracker(trax_udp_sender.UDPSender):
                 setattr(self,attr,FastImage.Size(w,h))
         finally:
             self.roi_sz_lock.release()
-            
+
     def set_view_flip_LR( self, val ):
         self.live_canvas.set_flip_LR(val)
         if BGROI_IM:
@@ -315,7 +313,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.bgroi_canvas.set_rotate_180(val)
         if DEBUGROI_IM:
             self.debugroi_canvas.set_rotate_180(val)
-            
+
     def camera_starting_notification(self,
                                      cam_id,
                                      pixel_format=None,
@@ -324,10 +322,10 @@ class Tracker(trax_udp_sender.UDPSender):
         """
 
         cam_id is simply used as a dict key
-        
+
         """
         self.xrcid2validator[cam_id] = {}
-        
+
         self.pixel_format[cam_id]=pixel_format
         # setup GUI stuff
         if len(self.cam_ids)==0:
@@ -339,7 +337,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.per_cam_panel[cam_id] = per_cam_panel
         per_cam_panel.SetAutoLayout(True)
         self.frame_nb.AddPage(per_cam_panel,cam_id)
-        
+
         ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE")
         self.widget2cam_id[ctrl]=cam_id
         wx.EVT_BUTTON(ctrl,
@@ -366,7 +364,7 @@ class Tracker(trax_udp_sender.UDPSender):
             ctrl.GetId(),
             self.OnSetNumBackgroundImages)
         self.xrcid2validator[cam_id]["NUM_BACKGROUND_IMAGES"] = validator
-        
+
         self.ongoing_bg_image_update_interval[cam_id] = LockedValue(50)
         ctrl = xrc.XRCCTRL(per_cam_panel,"BACKGROUND_IMAGE_UPDATE_INTERVAL")
         ctrl.SetValue( str(self.ongoing_bg_image_update_interval[cam_id].get()))
@@ -376,7 +374,7 @@ class Tracker(trax_udp_sender.UDPSender):
             ctrl.GetId(),
             self.OnSetBackgroundUpdateInterval)
         self.xrcid2validator[cam_id]["BACKGROUND_IMAGE_UPDATE_INTERVAL"] = validator
-        
+
         tracking_enabled_widget = xrc.XRCCTRL(per_cam_panel,"TRACKING_ENABLED")
         self.widget2cam_id[tracking_enabled_widget]=cam_id
         wx.EVT_CHECKBOX(tracking_enabled_widget,
@@ -391,7 +389,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.use_roi2[cam_id] = threading.Event()
         if use_roi2_widget.IsChecked():
             self.use_roi2[cam_id].set()
-        
+
         ctrl = xrc.XRCCTRL(per_cam_panel,"CLEAR_THRESHOLD")
         self.widget2cam_id[ctrl]=cam_id
         validator = wxvt.setup_validated_float_callback(
@@ -424,13 +422,13 @@ class Tracker(trax_udp_sender.UDPSender):
         wx.EVT_BUTTON(start_recording_widget,
                       start_recording_widget.GetId(),
                       self.OnStartRecording)
-        
+
         stop_recording_widget = xrc.XRCCTRL(per_cam_panel,"STOP_RECORDING")
         self.widget2cam_id[stop_recording_widget]=cam_id
         wx.EVT_BUTTON(stop_recording_widget,
                       stop_recording_widget.GetId(),
                       self.OnStopRecording)
-        
+
         save_status_widget = xrc.XRCCTRL(per_cam_panel,"SAVE_STATUS")
         self.save_status_widget[cam_id] = save_status_widget
 
@@ -445,24 +443,24 @@ class Tracker(trax_udp_sender.UDPSender):
         self.widget2cam_id[self.save_data_prefix_widget[cam_id]]=cam_id
 
 #####################
-        
+
         ctrl = xrc.XRCCTRL(per_cam_panel,"EDIT_MASK_BUTTON")
         self.widget2cam_id[ctrl]=cam_id
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditMask )
 
         ##############
         self.edit_mask_dlg[cam_id] = RES.LoadDialog(per_cam_panel,"EDIT_MASK_DIALOG")
-        
+
         view_mask_mode_widget = xrc.XRCCTRL(self.edit_mask_dlg[cam_id],"VIEW_MASK_CHECKBOX")
         self.widget2cam_id[view_mask_mode_widget]=cam_id
         wx.EVT_CHECKBOX(view_mask_mode_widget,
                         view_mask_mode_widget.GetId(),
                         self.OnViewMaskMode)
-        
+
         self.new_mask_x_center[cam_id] = max_width//2
         self.new_mask_y_center[cam_id] = max_height//2
         self.new_mask_radius[cam_id] = max(max_width,max_height)
-        
+
         mask_x_center_widget = xrc.XRCCTRL(self.edit_mask_dlg[cam_id], "MASK_X_CENTER")
         self.widget2cam_id[mask_x_center_widget]=cam_id
         wx.EVT_COMMAND_SCROLL(mask_x_center_widget,
@@ -470,7 +468,7 @@ class Tracker(trax_udp_sender.UDPSender):
                               self.OnScrollMaskXCenter)
         mask_x_center_widget.SetRange(0,max_width-1)
         mask_x_center_widget.SetValue(self.new_mask_x_center[cam_id])
-        
+
         mask_y_center_widget = xrc.XRCCTRL(self.edit_mask_dlg[cam_id], "MASK_Y_CENTER")
         self.widget2cam_id[mask_y_center_widget]=cam_id
         wx.EVT_COMMAND_SCROLL(mask_y_center_widget,
@@ -478,7 +476,7 @@ class Tracker(trax_udp_sender.UDPSender):
                               self.OnScrollMaskYCenter)
         mask_y_center_widget.SetRange(0,max_height-1)
         mask_y_center_widget.SetValue(self.new_mask_y_center[cam_id])
-        
+
         mask_radius_widget = xrc.XRCCTRL(self.edit_mask_dlg[cam_id], "MASK_RADIUS")
         self.widget2cam_id[mask_radius_widget]=cam_id
         wx.EVT_COMMAND_SCROLL(mask_radius_widget,
@@ -487,26 +485,26 @@ class Tracker(trax_udp_sender.UDPSender):
         mask_radius_widget.SetRange(0,max(max_width,max_height)-1)
         mask_radius_widget.SetValue(self.new_mask_radius[cam_id])
         ##############
-        
+
         # setup non-GUI stuff
         max_num_points = 1
         self.cam_ids.append(cam_id)
-        
+
         self.display_active[cam_id] = threading.Event()
         if len(self.cam_ids) > 1:
             raise NotImplementedError('if >1 camera supported, implement setting display_active on notebook page change')
         else:
             self.display_active[cam_id].set()
-        
+
         self.view_mask_mode[cam_id] = threading.Event()
         self.newmask[cam_id] = SharedValue()
-        
+
         self.data_queues[cam_id] = Queue.Queue()
         self.wxmessage_queues[cam_id] = Queue.Queue()
         self.clear_and_take_bg_image[cam_id] = threading.Event()
         self.load_bg_image[cam_id] = Queue.Queue()
         self.enable_ongoing_bg_image[cam_id] = threading.Event()
-                
+
         self.tracking_enabled[cam_id] = threading.Event()
         if tracking_enabled_widget.IsChecked():
             self.tracking_enabled[cam_id].set()
@@ -531,7 +529,7 @@ class Tracker(trax_udp_sender.UDPSender):
         validator = self.xrcid2validator[cam_id]["HISTORY_BUFFER_LENGTH"]
         ctrl.SetValue( '%d'%self.history_buflen_value[cam_id])
         validator.set_state('valid')
-        
+
         self.clear_threshold_value[cam_id] = ra.clear_threshold
         self.clear_threshold_value[cam_id] = ra.diff_threshold
 
@@ -539,20 +537,20 @@ class Tracker(trax_udp_sender.UDPSender):
         validator = self.xrcid2validator[cam_id]["CLEAR_THRESHOLD"]
         ctrl.SetValue( '%.2f'%ra.clear_threshold )
         validator.set_state('valid')
-        
+
         ctrl = xrc.XRCCTRL(per_cam_panel,"DIFF_THRESHOLD")
         validator = self.xrcid2validator[cam_id]["DIFF_THRESHOLD"]
         ctrl.SetValue( '%d'%ra.diff_threshold )
         validator.set_state('valid')
-        
+
         max_frame_size = FastImage.Size( max_width, max_height )
         self.max_frame_size[cam_id] = max_frame_size
         self.full_frame_live[cam_id] = FastImage.FastImage8u( max_frame_size )
         self.running_mean_im[cam_id] = FastImage.FastImage32f( max_frame_size)
-        
+
     def get_buffer_allocator(self,cam_id):
         return BufferAllocator()
-    
+
     def get_plugin_name(self):
         return 'FlyTrax'
 
@@ -580,7 +578,7 @@ class Tracker(trax_udp_sender.UDPSender):
         per_cam_panel = self.per_cam_panel[cam_id]
         ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE_ALLOW_WHEN_SAVING")
         if not ctrl.GetValue() and cam_id in self.trx_writer:
-            
+
             dlg = wx.MessageDialog(self.wx_parent,
                                    'Saving data - cannot take background image',
                                    'FlyTrax error',
@@ -589,7 +587,7 @@ class Tracker(trax_udp_sender.UDPSender):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        
+
         self.clear_and_take_bg_image[cam_id].set()
         self.display_message('capturing background image')
 
@@ -600,7 +598,7 @@ class Tracker(trax_udp_sender.UDPSender):
         per_cam_panel = self.per_cam_panel[cam_id]
         ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE_ALLOW_WHEN_SAVING")
         if not ctrl.GetValue() and cam_id in self.trx_writer:
-            
+
             dlg = wx.MessageDialog(self.wx_parent,
                                    'Saving data - cannot take background image',
                                    'FlyTrax error',
@@ -620,7 +618,7 @@ class Tracker(trax_udp_sender.UDPSender):
                 doit=True
         finally:
             dlg.Destroy()
-            
+
         if doit:
             filename = os.path.join(dirname,fname)
 
@@ -660,7 +658,7 @@ class Tracker(trax_udp_sender.UDPSender):
         else:
             self.enable_ongoing_bg_image[cam_id].clear()
         self.display_message('enabled ongoing background image updates')
-        
+
     def OnSetNumBackgroundImages(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -672,7 +670,7 @@ class Tracker(trax_udp_sender.UDPSender):
         cam_id = self.widget2cam_id[widget]
         val = int(widget.GetValue())
         self.ongoing_bg_image_update_interval[cam_id].set(val)
-        
+
     def OnTrackingEnabled(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -680,7 +678,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.tracking_enabled[cam_id].set()
         else:
             self.tracking_enabled[cam_id].clear()
-            
+
     def OnUseROI2(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -718,7 +716,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.new_diff_threshold[cam_id].set()
             self.display_message('set difference threshold %d'%newval)
         event.Skip()
-        
+
     def OnHistoryBuflen(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -743,7 +741,7 @@ class Tracker(trax_udp_sender.UDPSender):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
         self.new_mask_x_center[cam_id] = widget.GetValue()
-    
+
     def OnScrollMaskYCenter(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -799,9 +797,9 @@ class Tracker(trax_udp_sender.UDPSender):
             tmp = full_frame_live.roi( x0, y0, roi_sz )
             # 3. make copy of software_roi
             software_roi = tmp.get_8u_copy(tmp.size) # copy
-            
+
         return software_roi, (x0,y0)
-        
+
     def process_frame(self,cam_id,buf,buf_offset,timestamp,framenumber):
         if self.pixel_format[cam_id]=='YUV422':
             buf = imops.yuv422_to_mono8( numpy.asarray(buf) ) # convert
@@ -812,7 +810,7 @@ class Tracker(trax_udp_sender.UDPSender):
         if cam_id not in self.process_frame_cam_ids:
             self.process_frame_cam_ids.append( cam_id )
         cam_no = self.process_frame_cam_ids.index( cam_id )
-        
+
         self.ticks_since_last_update[cam_id] += 1
         start = time.time()
         # this is called in realtime thread
@@ -839,31 +837,31 @@ class Tracker(trax_udp_sender.UDPSender):
 
         history_buflen_value = self.history_buflen_value[cam_id]
         use_roi2 = self.use_roi2[cam_id].isSet()
-        
+
         use_cmp = False # use variance-based background subtraction/analysis
         return_first_xy = False # for debugging only
         draw_points = []
         draw_linesegs = []
-        
+
         if newmask.is_new_value_waiting():
             (x,y,radius), newmask_im = newmask.get_nowait()
-            
+
             self.realtime_mask_x_center[cam_id]=x
             self.realtime_mask_y_center[cam_id]=y
             self.realtime_mask_radius[cam_id]=radius
-            
+
             newmask_fi = FastImage.asfastimage( newmask_im )
             assert newmask_fi.size == max_frame_size
             mask_im = realtime_analyzer.get_image_view('mask')
             newmask_fi.get_8u_copy_put(mask_im, max_frame_size)
-            
+
         if view_mask_mode.isSet():
 
             w,h = max_frame_size.w, max_frame_size.h
             x=self.realtime_mask_x_center.get(cam_id, w//2)
             y=self.realtime_mask_y_center.get(cam_id, h//2)
             radius=self.realtime_mask_radius.get(cam_id, max(w,h))
-            
+
             N = 64
             theta = numpy.arange(N)*2*math.pi/N
             xdraw = x+numpy.cos(theta)*radius
@@ -873,7 +871,7 @@ class Tracker(trax_udp_sender.UDPSender):
                     (xdraw[i],ydraw[i],xdraw[i+1],ydraw[i+1]))
             draw_linesegs.append(
                 (xdraw[-1],ydraw[-1],xdraw[0],ydraw[0]))
-        
+
         if clear_and_take_bg_image.isSet():
             # this is a view we write into
             # copy current image into background image
@@ -881,7 +879,7 @@ class Tracker(trax_udp_sender.UDPSender):
             if running_mean8u_im.size == fibuf.size:
                 fibuf.get_32f_copy_put( running_mean_im,   max_frame_size )
                 fibuf.get_8u_copy_put(  running_mean8u_im, max_frame_size )
-                
+
                 # make copy available for saving data
                 self.bg_update_lock.acquire()
                 self.full_bg_image[cam_id] = fibuf
@@ -906,7 +904,7 @@ class Tracker(trax_udp_sender.UDPSender):
             if running_mean8u_im.size == new_bg_image_fastimage.size:
                 new_bg_image_fastimage.get_32f_copy_put( running_mean_im,   max_frame_size )
                 new_bg_image_fastimage.get_8u_copy_put(  running_mean8u_im, max_frame_size )
-                
+
                 # make copy available for saving data
                 self.bg_update_lock.acquire()
                 self.full_bg_image[cam_id] = new_bg_image_fastimage
@@ -917,7 +915,7 @@ class Tracker(trax_udp_sender.UDPSender):
                                       wx.OK | wx.ICON_ERROR) )
 
         if enable_ongoing_bg_image.isSet():
-            
+
             update_interval = self.ongoing_bg_image_update_interval[cam_id].get()
             if self.ticks_since_last_update[cam_id]%update_interval == 0:
                 alpha = 1.0/self.ongoing_bg_image_num_images[cam_id].get()
@@ -927,7 +925,7 @@ class Tracker(trax_udp_sender.UDPSender):
                     running_mean_im.toself_add_weighted( fibuf, max_frame_size, alpha )
                     # maintain 8bit unsigned background image
                     running_mean_im.get_8u_copy_put( running_mean8u_im, max_frame_size )
-                    
+
                     # make copy available for saving data
                     bg_copy = running_mean_im.get_8u_copy(running_mean_im.size)
                     self.bg_update_lock.acquire()
@@ -937,13 +935,13 @@ class Tracker(trax_udp_sender.UDPSender):
                     wxmessage_queue.put( ('cannot take background image when using hardware ROI',
                                           'FlyTrax error',
                                           wx.OK | wx.ICON_ERROR) )
-            
+
         if new_clear_threshold.isSet():
             nv = self.clear_threshold_value[cam_id]
             realtime_analyzer.clear_threshold = nv
             #print 'set clear',nv
             new_clear_threshold.clear()
-            
+
         if new_diff_threshold.isSet():
             nv = self.diff_threshold_value[cam_id]
             realtime_analyzer.diff_threshold = nv
@@ -955,7 +953,7 @@ class Tracker(trax_udp_sender.UDPSender):
             points = realtime_analyzer.do_work(fibuf,
                                                timestamp, framenumber, use_roi2,
                                                use_cmp, return_first_xy)
-            
+
             self.roi_sz_lock.acquire()
             try:
                 roi_display_sz = self.roi_display_sz
@@ -963,7 +961,7 @@ class Tracker(trax_udp_sender.UDPSender):
                 roi_send_sz = self.roi_send_sz
             finally:
                 self.roi_sz_lock.release()
-                
+
             roi_display, (display_x0, display_y0) = self._process_frame_extract_roi(
                 points, roi_display_sz,
                 fibuf, full_frame_live,
@@ -971,19 +969,19 @@ class Tracker(trax_udp_sender.UDPSender):
             roi_save_fmf, (fmf_save_x0, fmf_save_y0) = self._process_frame_extract_roi(
                 points, roi_save_fmf_sz,
                 fibuf, full_frame_live,
-                max_frame_size)                
+                max_frame_size)
             roi_send, (udp_send_x0, udp_send_y0) = self._process_frame_extract_roi(
                 points, roi_send_sz,
                 fibuf, full_frame_live,
                 max_frame_size)
 
-            
+
             n_pts = len(points)
 
             if n_pts:
                 pt = points[0] # only operate on first point
                 (x,y,area,slope,eccentricity)=pt[:5]
-                
+
                 # put data in queue for saving
                 numdata = (x,y, slope, fmf_save_x0, fmf_save_y0, timestamp, area, framenumber)
                 data = (roi_save_fmf, numdata)
@@ -1046,14 +1044,14 @@ class Tracker(trax_udp_sender.UDPSender):
             self.last_detection_list = self.last_detection_list[-history_buflen_value:]
         draw_points.extend([p for p in self.last_detection_list if p is not None])
         return draw_points, draw_linesegs
-                
+
     def display_message(self,msg,duration_msec=2000):
         self.status_message.SetLabel(msg)
         self.timer_clear_message.Start(duration_msec,wx.TIMER_ONE_SHOT)
-        
+
     def OnClearMessage(self,evt):
         self.status_message.SetLabel('')
-        
+
     def OnServiceIncomingData(self, evt):
         for cam_id in self.cam_ids:
             data_queue = self.data_queues[cam_id]
@@ -1074,7 +1072,7 @@ class Tracker(trax_udp_sender.UDPSender):
             except Queue.Empty:
                 pass
         self.update_screen()
-        
+
         # show any messages
         msgs = []
         for cam_id in self.cam_ids:
@@ -1099,24 +1097,24 @@ class Tracker(trax_udp_sender.UDPSender):
                 changed=True
                 self.mask_x_center[cam_id] = self.new_mask_x_center[cam_id]
                 self.new_mask_x_center[cam_id] = None
-                
+
             if self.new_mask_y_center[cam_id] is not None:
                 changed=True
                 self.mask_y_center[cam_id] = self.new_mask_y_center[cam_id]
                 self.new_mask_y_center[cam_id] = None
-                
+
             if self.new_mask_radius[cam_id] is not None:
                 changed=True
                 self.mask_radius[cam_id] = self.new_mask_radius[cam_id]
                 self.new_mask_radius[cam_id] = None
-                
+
             if changed:
                 a = self.mask_x_center[cam_id]
                 b = self.mask_y_center[cam_id]
                 c = self.mask_radius[cam_id]
                 x,y,radius=a,b,c
                 #print 'recalculating mask: X %d, Y %d, r %d'%(a,b,c)
-                
+
                 width = self.max_frame_size[cam_id].w
                 height = self.max_frame_size[cam_id].h
 
@@ -1145,7 +1143,7 @@ class Tracker(trax_udp_sender.UDPSender):
         ctrl.Enable(False)
         ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_HEIGHT')
         ctrl.Enable(False)
-            
+
         # grab background image from other thread
         self.bg_update_lock.acquire()
         bg_image = self.full_bg_image.get(cam_id,None)
@@ -1168,7 +1166,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.trx_writer[cam_id] = trx_writer
         self.save_status_widget[cam_id].SetLabel('saving')
         self.display_message('saving data to %s'%fname)
-        
+
     def OnStopRecording(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
@@ -1177,7 +1175,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.trx_writer[cam_id].close()
             del self.trx_writer[cam_id]
             self.save_status_widget[cam_id].SetLabel('not saving')
-            
+
             per_cam_panel = self.per_cam_panel[cam_id]
             ctrl = xrc.XRCCTRL(per_cam_panel,"SAVE_NTH_FRAME")
             ctrl.Enable(True)
@@ -1193,7 +1191,7 @@ class Tracker(trax_udp_sender.UDPSender):
     def quit(self):
         for trx_writer in self.trx_writer.itervalues():
             trx_writer.close() # make sure all data savers close nicely
-            
+
     def update_screen(self):
         """Draw on screen
 
@@ -1218,14 +1216,14 @@ class Tracker(trax_udp_sender.UDPSender):
         else:
             have_new_image = False
         self.image_update_lock.release()
-        
+
         if have_new_image:
             points = []
             linesegs = []
-            
+
             width = im.size.w
             height = im.size.h
-            
+
             # this scaling should be moved to wxvideo:
             if 1:
                 xg = width
@@ -1235,18 +1233,18 @@ class Tracker(trax_udp_sender.UDPSender):
                 xo = width-1
             yg = height
             yo = 0
-            
+
             for orig_pt in orig_points:
 
                 ox0,oy0,area,slope,eccentricity = orig_pt[:5]
                 #print '% 8.1f % 8.1f (slope: % 8.1f)'%(ox0, oy0, slope)
                 ox0 = ox0-roi_display_left   # put in display ROI coordinate system
                 oy0 = oy0-roi_display_bottom # put in display ROI coordinate system
-                
-                
+
+
                 # points ================================
                 points.append((ox0,oy0))
-                
+
                 # linesegs ==============================
                 if eccentricity <= self.minimum_eccentricity:
                     # don't draw green lines -- not much orientation info
@@ -1254,7 +1252,7 @@ class Tracker(trax_udp_sender.UDPSender):
 
                 slope=-slope
                 oy0 = height-oy0
-                
+
                 # line segment for orientation
                 xmin = 0
                 ymin = 0
@@ -1282,7 +1280,7 @@ class Tracker(trax_udp_sender.UDPSender):
                     x2 = -(c+b*y2)/a
                 elif y2 > ymax:
                     y2 = ymax
-                    x2 = -(c+b*y2)/a                
+                    x2 = -(c+b*y2)/a
 
                 x1 = x1/width*xg+xo
                 x2 = x2/width*xg+xo
@@ -1295,7 +1293,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.live_canvas.update_image_and_drawings(
                 'camera', im, format=format,
                 )
-            
+
             if 1:
                 self.live_canvas.Refresh(eraseBackground=False)
 
