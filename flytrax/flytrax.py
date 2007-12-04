@@ -95,6 +95,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.frame = RES.LoadFrame(self.wx_parent,"FLYTRAX_FRAME") # make frame main panel
 
         trax_udp_sender.UDPSender.__init__(self,self.frame)
+        self.last_n_downstream_hosts = None
         ctrl = xrc.XRCCTRL(self.frame,"EDIT_UDP_RECEIVERS")
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditUDPReceivers)
 
@@ -161,10 +162,7 @@ class Tracker(trax_udp_sender.UDPSender):
 
         self.bg_update_lock = threading.Lock()
 
-        self.runthread_remote_host = None
         self.send_over_ip = threading.Event()
-
-        self.remote_host = None
 
         self.sockobj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -987,15 +985,16 @@ class Tracker(trax_udp_sender.UDPSender):
                 data = (roi_save_fmf, numdata)
                 data_queue.put( data )
 
-                # find any new IP addresses to send data to
-                if self.remote_host_changed.isSet():
-                    self.remote_host_lock.acquire()
-                    self.runthread_remote_host = self.remote_host
-                    self.remote_host_lock.release()
-                    self.remote_host_changed.clear()
+                runthread_remote_host = self.get_downstream_hosts()
+
+                n_downstream_hosts = len(runthread_remote_host)
+                if self.last_n_downstream_hosts != n_downstream_hosts:
+                    ctrl = xrc.XRCCTRL(self.frame,'SEND_TO_IP_ENABLED')
+                    ctrl.SetLabel('send data to %d receiver(s)'%n_downstream_hosts)
+                    self.last_n_downstream_hosts = n_downstream_hosts
 
                 # send data over UDP
-                if self.send_over_ip.isSet() and self.runthread_remote_host is not None:
+                if self.send_over_ip.isSet() and runthread_remote_host is not None:
                     # XXX send these data
                     a = (roi_send, udp_send_x0, udp_send_y0)
                     databuf1 = struct.pack('cBLdfffffBBII',
@@ -1008,7 +1007,7 @@ class Tracker(trax_udp_sender.UDPSender):
                     #assert len(databuf2) == roi_send.size.w * roi_send.size.h
                     #print 'transmitting %d bytes to %d hosts'%(
                     #    len(databuf),len(self.runthread_remote_host))
-                    for remote_host in self.runthread_remote_host:
+                    for remote_host in runthread_remote_host:
                         self.sockobj.sendto( databuf, remote_host)
 
             if BGROI_IM:

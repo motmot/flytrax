@@ -14,18 +14,19 @@ class UDPSender(object):
 
 Use this class in the following way to get a list of hostnames to send data to:
 
-        with self.remote_host_lock:
-            # copy items out of list shared across threads
-            hosts = self.remote_host[:]
-
-        for host in hosts:
-            do_something_useful()
+hosts = udp_sender_instance.get_downstream_hosts()
+for host in hosts:
+    sockobj.sendto( 'hello', host)
 
     """
+
     def __init__(self,frame):
         self.frame = frame
-        self.remote_host_lock = threading.Lock()
-        self.remote_host_changed = threading.Event()
+        self._remote_host_lock = threading.Lock()
+        self._remote_host_changed = threading.Event()
+
+        self._remote_host_caller = None
+        self._remote_host_gui = None
 
         self.edit_udp_receivers_dlg = RES.LoadDialog(self.frame,"UDP_RECEIVER_DIALOG")
 
@@ -41,6 +42,17 @@ Use this class in the following way to get a list of hostnames to send data to:
         wx.EVT_BUTTON(ctrl,ctrl.GetId(),self.OnUDPRemove)
 
 #######################
+    def get_downstream_hosts(self):
+        if self._remote_host_changed.isSet():
+            self._remote_host_lock.acquire()
+            try:
+                # copy items out of list shared across threads
+                self._remote_host_caller = self._remote_host_gui
+                self._remote_host_changed.clear()
+            finally:
+                self._remote_host_lock.release()
+        return self._remote_host_caller
+
     def OnEditUDPReceivers(self,event):
         self.edit_udp_receivers_dlg.ShowModal()
 
@@ -48,17 +60,17 @@ Use this class in the following way to get a list of hostnames to send data to:
         listctrl = xrc.XRCCTRL(self.edit_udp_receivers_dlg,"UDP_RECEIVER_LIST")
         n = listctrl.GetCount()
 
-        self.remote_host_lock.acquire()
+        self._remote_host_lock.acquire()
         try:
-            self.remote_host_changed.set()
+            self._remote_host_changed.set()
             if n > 0:
-                self.remote_host = []
+                self._remote_host_gui = []
                 for idx in range(n):
-                    self.remote_host.append( listctrl.GetClientData(idx) )
+                    self._remote_host_gui.append( listctrl.GetClientData(idx) )
             else:
-                self.remote_host = None
+                self._remote_host_gui = None
         finally:
-            self.remote_host_lock.release()
+            self._remote_host_lock.release()
 
     def OnEnableSendToIP(self,event):
         widget = event.GetEventObject()
