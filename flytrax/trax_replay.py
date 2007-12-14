@@ -14,10 +14,12 @@ import time, Queue, threading, os
 import sys
 
 RESFILE = pkg_resources.resource_filename(__name__,"trax_replay.xrc") # trigger extraction
-RES = xrc.wxXmlResource(RESFILE)
+
+RES = xrc.EmptyXmlResource()
+RES.LoadFromString(open(RESFILE).read())
 
 class ReplayApp(wx.App):
-    
+
     def OnInit(self,*args,**kw):
         wx.InitAllImageHandlers()
         self.frame = RES.LoadFrame(None,"TRAX_REPLAY_FRAME") # make frame main panel
@@ -78,14 +80,14 @@ class ReplayApp(wx.App):
                                                     timestamp,
                                                     framenumber)
             tup = bg_image, points, linesegs
-        
+
         try:
             while 1:
                 tup = self.inq.get(0)
                 self.statusbar.SetStatusText('playing',1)
         except Queue.Empty:
             pass
-        
+
         if tup is not None:
             im, points, linesegs = tup
             # display on screen
@@ -95,9 +97,9 @@ class ReplayApp(wx.App):
                                                             points=points,
                                                             linesegs=linesegs,
                                                             )
-            
-            
-    
+
+
+
     def OnLoadTrx(self,event):
         doit=False
         dlg = wx.FileDialog( self.frame, "Select .trx file",
@@ -113,7 +115,7 @@ class ReplayApp(wx.App):
         if not doit:
             return
         self.load_trx(trx_filename)
-        
+
     def load_trx(self,trx_filename):
         # clear old trx file
         if self.loaded_trx is not None:
@@ -123,7 +125,7 @@ class ReplayApp(wx.App):
             self.inq = Queue.Queue()
 
         fmf_filename = os.path.splitext(trx_filename)[0]+'.fmf'
-        
+
         bg_image, all_vals = traxio.readtrax( trx_filename )
         all_vals = numpy.asarray(all_vals)
         fmf = FlyMovieFormat.FlyMovie(fmf_filename)#, check_integrity=True)
@@ -131,7 +133,7 @@ class ReplayApp(wx.App):
         n_frames = len(all_vals)
         cam_id='fake_camera'
         format='MONO8'
-        
+
         # initialize Tracker
         tracker = flytrax.Tracker( self.frame )
         tracker.get_frame().Show()
@@ -140,7 +142,7 @@ class ReplayApp(wx.App):
                                              pixel_format=format,
                                              max_width=bg_image.shape[1],
                                              max_height=bg_image.shape[0])
-        
+
         # save data for processing
         self.loaded_trx = dict( bg_image=bg_image,
                                 all_vals=all_vals,
@@ -163,10 +165,10 @@ class ReplayApp(wx.App):
                                                         #yoffset=last_offset[1],
                                                         )
         self.statusbar.SetStatusText('%s loaded'%(os.path.split(trx_filename)[1],),0)
-        
+
     def OnTrackerWindowClose(self,event):
         pass # don't close window (pointless in trax_replay)
-    
+
     def OnPlayFrames(self,event):
         if self.loaded_trx is None:
             print 'no .trx file loaded'
@@ -222,14 +224,14 @@ def play_func(loaded_trx, im_pts_segs_q, playing ):
             #time.sleep(1e-2)
     finally:
         playing.clear()
-            
+
 def main():
     app = ReplayApp(0)
     if len(sys.argv) > 1:
         trx_filename = sys.argv[1]
         app.load_trx(trx_filename)
     app.MainLoop()
-    
+
     if app.loaded_trx is not None:
         tracker = app.loaded_trx['tracker']
         tracker.quit()
