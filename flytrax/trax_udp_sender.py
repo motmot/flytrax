@@ -25,8 +25,8 @@ for host in hosts:
         self._remote_host_lock = threading.Lock()
         self._remote_host_changed = threading.Event()
 
-        self._remote_host_caller = None
-        self._remote_host_gui = None
+        self._remote_host_caller = []
+        self._remote_host_gui = []
 
         self.edit_udp_receivers_dlg = RES.LoadDialog(self.frame,"UDP_RECEIVER_DIALOG")
 
@@ -63,12 +63,9 @@ for host in hosts:
         self._remote_host_lock.acquire()
         try:
             self._remote_host_changed.set()
-            if n > 0:
-                self._remote_host_gui = []
-                for idx in range(n):
-                    self._remote_host_gui.append( listctrl.GetClientData(idx) )
-            else:
-                self._remote_host_gui = None
+            self._remote_host_gui = []
+            for idx in range(n):
+                self._remote_host_gui.append( listctrl.GetClientData(idx) )
         finally:
             self._remote_host_lock.release()
 
