@@ -29,8 +29,8 @@ try:
 except ImportError:
     import flytrax.trax_udp_sender as trax_udp_sender
 
-import wxvideo
-import imops
+import motmot.wxvideo.wxvideo as wxvideo
+import motmot.imops.imops as imops
 import FastImage
 
 import realtime_image_analysis
