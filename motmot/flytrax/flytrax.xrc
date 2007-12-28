@@ -461,7 +461,7 @@
             <object class="wxSlider" name="MASK_X_CENTER">
               <value></value>
               <min></min>
-              <max>0</max>
+              <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>center (x)</tooltip>
             </object>
@@ -479,7 +479,7 @@
             <object class="wxSlider" name="MASK_Y_CENTER">
               <value></value>
               <min></min>
-              <max>0</max>
+              <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>center (y)</tooltip>
             </object>
@@ -496,7 +496,7 @@
             <object class="wxSlider" name="MASK_RADIUS">
               <value></value>
               <min></min>
-              <max>0</max>
+              <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>radius</tooltip>
             </object>
