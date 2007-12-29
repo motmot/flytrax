@@ -1,4 +1,4 @@
-import FlyMovieFormat
+import motmot.FlyMovieFormat.FlyMovieFormat as FlyMovieFormat
 import numpy as nx
 from numpy import nan
 import sys, struct
@@ -17,17 +17,17 @@ class TraxDataWriter:
         version 1 does not save area
         version 2 does save area
         """
-        
+
         data_fname = fname_prefix+'.trx'
         self.data_fd = open(data_fname,'wb')
         bgimage = nx.asarray(bgimage)
-        
+
         assert len(bgimage.shape)==2
         assert bgimage.dtype==nx.dtype(nx.uint8)
 
         assert version in VALID_VERSIONS
         self.version = version
-        
+
         self.data_fd.write( struct.pack(header_fmt,
                                         self.version,
                                         bgimage.shape[0],
@@ -36,7 +36,7 @@ class TraxDataWriter:
 
         fmf_fname = fname_prefix + '.fmf'
         self.fmf = FlyMovieFormat.FlyMovieSaver( fmf_fname)
-        
+
     def close(self):
         self.fmf.close()
         self.data_fd.close()
@@ -112,11 +112,11 @@ def test_version(version,incomplete=False):
             f1.data_fd.seek(where-2,0)
             f1.data_fd.truncate()
         f1.close()
-        
+
         im,rows=readtrax(fname+'.trx')
     finally:
         shutil.rmtree(dirname)
-            
+
     assert nx.allclose(im,a)
     assert nx.allclose(r1,rows[0])
     assert nx.allclose(r2,rows[1])
@@ -129,7 +129,7 @@ def print_info(fname_prefix):
     print 'len(all_vals)',len(all_vals)
     print 'all_vals[0]',all_vals[0]
     print 'all_vals[-1]',all_vals[-1]
-    
+
     fmf = FlyMovieFormat.FlyMovie(fmf_fname,check_integrity=True)
     print 'fmf.get_n_frames()',fmf.get_n_frames()
     print 'fmf.get_width(), fmf.get_height()',fmf.get_width(), fmf.get_height()
@@ -145,7 +145,7 @@ class TestTraxIO(unittest.TestCase):
         test_version(1)
     def test_fmt2(self):
         test_version(2)
-        
+
     def test_fmt1_incomplete(self):
         test_version(1,incomplete=True)
     def test_fmt2_incomplete(self):

@@ -8,7 +8,7 @@ setup(name='motmot.flytrax',
      author_email='strawman@astraw.com',
      url='http://code.astraw.com/projects/motmot',
      entry_points = {
-       'cam_iface.fview_plugins':'flytrax = motmot.flytrax.flytrax:Tracker',
+       'motmot.fview.plugins':'flytrax = motmot.flytrax.flytrax:Tracker',
        'console_scripts': [
            'flytrax_print_info = motmot.flytrax.traxio:print_info_main',
            ],

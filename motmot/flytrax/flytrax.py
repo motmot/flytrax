@@ -22,6 +22,7 @@ from __future__ import division
 #  _process_frame_extract_roi() during the process_frame() call.
 
 import sys, threading, Queue, time, socket, math, struct, os
+import pkg_resources
 import traxio
 
 try:
@@ -31,14 +32,13 @@ except ImportError:
 
 import motmot.wxvideo.wxvideo as wxvideo
 import motmot.imops.imops as imops
-import FastImage
+import motmot.FastImage.FastImage as FastImage
 
-import realtime_image_analysis
+import motmot.realtime_image_analysis.realtime_image_analysis as realtime_image_analysis
 
-import pkg_resources
 import numpy
 
-import wxvalidatedtext as wxvt
+import motmot.wxvalidatedtext.wxvalidatedtext as wxvt
 
 import wx
 from wx import xrc
