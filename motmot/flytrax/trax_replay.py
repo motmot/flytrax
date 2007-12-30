@@ -1,17 +1,17 @@
+import pkg_resources
 import flytrax
 try:
     import flytrax.traxio as traxio
 except ImportError:
     import traxio
-import FlyMovieFormat
+import motmot.FlyMovieFormat.FlyMovieFormat as FlyMovieFormat
 import numpy
-import FastImage
+import motmot.FastImage.FastImage as FastImage
 import wx
 import wx.xrc as xrc
-import pkg_resources
-import wxglvideo
 import time, Queue, threading, os
 import sys
+import motmot.fview.fview_video as video_module
 
 RESFILE = pkg_resources.resource_filename(__name__,"trax_replay.xrc") # trigger extraction
 
@@ -39,7 +39,7 @@ class ReplayApp(wx.App):
         box = wx.BoxSizer(wx.VERTICAL)
         main_display_panel.SetSizer(box)
 
-        self.cam_image_canvas = wxglvideo.DynamicImageCanvas(main_display_panel,-1)
+        self.cam_image_canvas = video_module.DynamicImageCanvas(main_display_panel,-1)
         self.cam_image_canvas.x_border_pixels = 0
         self.cam_image_canvas.y_border_pixels = 0
         self.cam_image_canvas.set_clipping( False ) # much faster without clipping
