@@ -751,7 +751,7 @@ class Tracker(trax_udp_sender.UDPSender):
         self.new_mask_radius[cam_id] = widget.GetValue()
 
     def _process_frame_extract_roi( self, points, roi_sz,
-                                    fibuf, full_frame_live,
+                                    fibuf, buf_offset, full_frame_live,
                                     max_frame_size):
         # called from self.process_frame()
         n_pts = len(points)
@@ -789,6 +789,7 @@ class Tracker(trax_udp_sender.UDPSender):
         else:
             # make sure we can do software_roi size live view
             # 1. make full frame "live view"
+            l,b = buf_offset
             roi_into_full_frame = full_frame_live.roi( l,b, fibuf.size )
             fibuf.get_8u_copy_put(roi_into_full_frame,fibuf.size)
             # 2. get software_roi view into it
@@ -962,15 +963,15 @@ class Tracker(trax_udp_sender.UDPSender):
 
             roi_display, (display_x0, display_y0) = self._process_frame_extract_roi(
                 points, roi_display_sz,
-                fibuf, full_frame_live,
+                fibuf, buf_offset, full_frame_live,
                 max_frame_size)
             roi_save_fmf, (fmf_save_x0, fmf_save_y0) = self._process_frame_extract_roi(
                 points, roi_save_fmf_sz,
-                fibuf, full_frame_live,
+                fibuf, buf_offset, full_frame_live,
                 max_frame_size)
             roi_send, (udp_send_x0, udp_send_y0) = self._process_frame_extract_roi(
                 points, roi_send_sz,
-                fibuf, full_frame_live,
+                fibuf, buf_offset, full_frame_live,
                 max_frame_size)
 
 
