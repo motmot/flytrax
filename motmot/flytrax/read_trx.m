@@ -26,7 +26,7 @@ im_nbytes = im_height*im_width;  % image size
 background_image = fread(fp,[im_width,im_height],'uint8'); % unsigned 8-bit integer
 
 % read data ====================
-data = fread(fp,[nnums,inf],'float64');  % data position X, position Y, orientation (radians?), window X, windowY, time, (area - v2 only)
+data = fread(fp,[nnums,inf],'float64');  % data position X, position Y, orientation (slope), window X, windowY, time, (area - v2 only)
 
 % close file ====================
 fclose(fp);
