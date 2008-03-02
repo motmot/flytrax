@@ -838,7 +838,6 @@ class Tracker(trax_udp_sender.UDPSender):
         use_roi2 = self.use_roi2[cam_id].isSet()
 
         use_cmp = False # use variance-based background subtraction/analysis
-        return_first_xy = False # for debugging only
         draw_points = []
         draw_linesegs = []
 
@@ -951,7 +950,7 @@ class Tracker(trax_udp_sender.UDPSender):
         if self.tracking_enabled[cam_id].isSet():
             points = realtime_analyzer.do_work(fibuf,
                                                timestamp, framenumber, use_roi2,
-                                               use_cmp, return_first_xy)
+                                               use_cmp=use_cmp)
 
             self.roi_sz_lock.acquire()
             try:
