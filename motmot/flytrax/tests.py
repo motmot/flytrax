@@ -1,3 +1,4 @@
+import pkg_resources
 import unittest
 import traxio
 
@@ -11,7 +12,8 @@ def get_test_suite():
 
 def test():
     suite = get_test_suite()
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    suite.debug()
+    #unittest.TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == '__main__':
     test()
