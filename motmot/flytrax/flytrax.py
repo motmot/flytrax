@@ -42,7 +42,7 @@ import motmot.wxvalidatedtext.wxvalidatedtext as wxvt
 
 import wx
 from wx import xrc
-import scipy.io.mio
+import scipy.io
 
 RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extraction
 RES = xrc.EmptyXmlResource()
@@ -621,7 +621,7 @@ class Tracker(trax_udp_sender.UDPSender):
             filename = os.path.join(dirname,fname)
 
             if filename.endswith('.mat'):
-                load_dict = scipy.io.mio.loadmat( filename )
+                load_dict = scipy.io.loadmat( filename, squeeze_me=True )
                 newbg = load_dict['bg_img']
                 if 0:
                     print 'newbg.shape',newbg.shape
