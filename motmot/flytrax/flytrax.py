@@ -875,20 +875,24 @@ class Tracker(trax_udp_sender.UDPSender):
             # copy current image into background image
             running_mean8u_im = realtime_analyzer.get_image_view('mean')
             if running_mean8u_im.size == fibuf.size:
-                fibuf.get_32f_copy_put( running_mean_im,   max_frame_size )
-                fibuf.get_8u_copy_put(  running_mean8u_im, max_frame_size )
-
-                # make copy available for saving data
-                self.bg_update_lock.acquire()
-                self.full_bg_image[cam_id] = fibuf
-                self.bg_update_lock.release()
+                srcfi = fibuf
+                bg_copy = srcfi.get_8u_copy(max_frame_size)
             else:
-                #print 'running_mean8u_im.size, fibuf.size',running_mean8u_im.size, fibuf.size
-                wxmessage_queue.put( ('cannot take background image when using hardware ROI',
-                                      'FlyTrax error',
-                                      wx.OK | wx.ICON_ERROR) )
-                #print 'ERROR:','cannot take background image when using hardware ROI'
+                srcfi = FastImage.FastImage8u(max_frame_size)
+                srcfi_roi = srcfi.roi(l,b,fibuf.size)
+                fibuf.get_8u_copy_put(srcfi_roi, fibuf.size)
+                bg_copy = srcfi # newly created, no need to copy
+
+            srcfi.get_32f_copy_put( running_mean_im,   max_frame_size )
+            srcfi.get_8u_copy_put(  running_mean8u_im, max_frame_size )
+
+            # make copy available for saving data
+            self.bg_update_lock.acquire()
+            self.full_bg_image[cam_id] = bg_copy
+            self.bg_update_lock.release()
+
             clear_and_take_bg_image.clear()
+            del srcfi, bg_copy # don't pollute namespace
 
         if not load_bg_image.empty():
             try:
@@ -918,21 +922,24 @@ class Tracker(trax_udp_sender.UDPSender):
             if self.ticks_since_last_update[cam_id]%update_interval == 0:
                 alpha = 1.0/self.ongoing_bg_image_num_images[cam_id].get()
                 if running_mean_im.size == fibuf.size:
-                    running_mean8u_im = realtime_analyzer.get_image_view('mean')
-                    # maintain running average
-                    running_mean_im.toself_add_weighted( fibuf, max_frame_size, alpha )
-                    # maintain 8bit unsigned background image
-                    running_mean_im.get_8u_copy_put( running_mean8u_im, max_frame_size )
-
-                    # make copy available for saving data
-                    bg_copy = running_mean_im.get_8u_copy(running_mean_im.size)
-                    self.bg_update_lock.acquire()
-                    self.full_bg_image[cam_id] = bg_copy
-                    self.bg_update_lock.release()
+                    srcfi = fibuf
                 else:
-                    wxmessage_queue.put( ('cannot take background image when using hardware ROI',
-                                          'FlyTrax error',
-                                          wx.OK | wx.ICON_ERROR) )
+                    # This is inelegant (it creates a full frame), but it works.
+                    srcfi = FastImage.FastImage8u(max_frame_size)
+                    srcfi_roi = srcfi.roi(l,b,fibuf.size)
+                    fibuf.get_8u_copy_put(srcfi_roi, fibuf.size)
+                    
+                running_mean8u_im = realtime_analyzer.get_image_view('mean')
+                # maintain running average
+                running_mean_im.toself_add_weighted( srcfi, max_frame_size, alpha )
+                # maintain 8bit unsigned background image
+                running_mean_im.get_8u_copy_put( running_mean8u_im, max_frame_size )
+
+                # make copy available for saving data
+                bg_copy = running_mean_im.get_8u_copy(running_mean_im.size)
+                self.bg_update_lock.acquire()
+                self.full_bg_image[cam_id] = bg_copy
+                self.bg_update_lock.release()
 
         if new_clear_threshold.isSet():
             nv = self.clear_threshold_value[cam_id]
