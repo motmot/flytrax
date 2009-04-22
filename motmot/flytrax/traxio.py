@@ -1,5 +1,5 @@
 import motmot.FlyMovieFormat.FlyMovieFormat as FlyMovieFormat
-import numpy as nx
+import numpy as np
 from numpy import nan
 import sys, struct
 import unittest
@@ -23,10 +23,10 @@ class TraxDataWriter:
 
         data_fname = fname_prefix+'.trx'
         self.data_fd = open(data_fname,'wb')
-        bgimage = nx.asarray(bgimage)
+        bgimage = np.asarray(bgimage)
 
         assert len(bgimage.shape)==2
-        assert bgimage.dtype==nx.dtype(nx.uint8)
+        assert bgimage.dtype==np.dtype(np.uint8)
 
         assert version in VALID_VERSIONS
         self.version = version
@@ -73,7 +73,7 @@ def readtrax(fname,return_structured_array=False):
     assert version in VALID_VERSIONS
     imsz = shape0*shape1
     imbuf = fd.read(imsz)
-    im = nx.fromstring(imbuf,nx.uint8)
+    im = np.fromstring(imbuf,np.uint8)
     im.shape = shape0,shape1
     buf = fd.read()
     bufptr = 0
@@ -95,22 +95,22 @@ def readtrax(fname,return_structured_array=False):
         bufptr+=chunksz
     results = all_vals
     if return_structured_array:
-        results = nx.array(all_vals)
-        results = results.view( dtype = [(field,nx.float) for field in fields ])
+        results = np.array(all_vals)
+        results = results.view( dtype = [(field,np.float) for field in fields ])
     return im, results
 
 def test_version(version,incomplete=False):
-    a=nx.zeros((1200,1600),nx.uint8)
+    a=np.zeros((1200,1600),np.uint8)
     if version==1:
-        r1=nx.array((1,2,3,4,5,6),nx.float64)
+        r1=np.array((1,2,3,4,5,6),np.float64)
     elif version==2:
         # include area
-        r1=nx.array((1,2,3,4,5,6,7),nx.float64)
+        r1=np.array((1,2,3,4,5,6,7),np.float64)
     r2 = r1*3.2
     r1 = list(r1)
     r2 = list(r2)
 
-    fake_image = nx.zeros((10,10),nx.uint8)
+    fake_image = np.zeros((10,10),np.uint8)
     ar1 = [fake_image]+r1
     ar2 = [fake_image]+r2
 
@@ -133,9 +133,9 @@ def test_version(version,incomplete=False):
     finally:
         shutil.rmtree(dirname)
 
-    assert nx.allclose(im,a)
-    assert nx.allclose(r1,rows[0])
-    assert nx.allclose(r2,rows[1])
+    assert np.allclose(im,a)
+    assert np.allclose(r1,rows[0])
+    assert np.allclose(r2,rows[1])
 
 def print_info(fname_prefix):
     data_fname = fname_prefix+'.trx'
