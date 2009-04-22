@@ -9,6 +9,9 @@ header_fmt = 'iii'
 chunk_fmt_v1 = 'dddddd'
 chunk_fmt_v2 = 'ddddddd'
 
+fields_v1 = ('posx','posy','orientation','windowx','windowy','timestamp')
+fields_v2 = ('posx','posy','orientation','windowx','windowy','timestamp','area')
+
 VALID_VERSIONS = (1,2)
 
 class TraxDataWriter:
@@ -54,7 +57,7 @@ class TraxDataWriter:
             buf = struct.pack(chunk_fmt_v2,posx,posy,orientation,windowx,windowy,timestamp,area)
         self.data_fd.write( buf )
 
-def readtrax(fname):
+def readtrax(fname,return_structured_array=False):
     """sample Python reader"""
     fd = open(fname,'rb')
     asz = struct.calcsize(header_fmt)
@@ -69,8 +72,10 @@ def readtrax(fname):
     bufptr = 0
     if version==1:
         chunk_fmt = chunk_fmt_v1
+        fields = fields_v1
     elif version==2:
         chunk_fmt = chunk_fmt_v2
+        fields = fields_v2
     chunksz = struct.calcsize(chunk_fmt)
     all_vals = []
     while bufptr<len(buf):
@@ -81,7 +86,11 @@ def readtrax(fname):
         vals = struct.unpack( chunk_fmt, chunkbuf )
         all_vals.append(vals)
         bufptr+=chunksz
-    return im, all_vals
+    results = all_vals
+    if return_structured_array:
+        results = nx.array(all_vals)
+        results = results.view( dtype = [(field,nx.float) for field in fields ])
+    return im, results
 
 def test_version(version,incomplete=False):
     a=nx.zeros((1200,1600),nx.uint8)
