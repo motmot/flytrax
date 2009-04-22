@@ -15,7 +15,7 @@ fields_v2 = ('posx','posy','orientation','windowx','windowy','timestamp','area')
 VALID_VERSIONS = (1,2)
 
 class TraxDataWriter:
-    def __init__(self, fname_prefix, bgimage, version=2):
+    def __init__(self, fname_prefix, bgimage, version=2, save_fmf=True):
         """
         version 1 does not save area
         version 2 does save area
@@ -37,11 +37,14 @@ class TraxDataWriter:
                                         bgimage.shape[1] )) # version, shape[0], shape[1]
         self.data_fd.write( bgimage.tostring() )
 
-        fmf_fname = fname_prefix + '.fmf'
-        self.fmf = FlyMovieFormat.FlyMovieSaver( fmf_fname)
+        self.save_fmf = save_fmf
+        if self.save_fmf:
+            fmf_fname = fname_prefix + '.fmf'
+            self.fmf = FlyMovieFormat.FlyMovieSaver( fmf_fname)
 
     def close(self):
-        self.fmf.close()
+        if self.save_fmf:
+            self.fmf.close()
         self.data_fd.close()
 
     def write_data(self,roi_img=None,
@@ -50,7 +53,11 @@ class TraxDataWriter:
                    windowx=nan,windowy=nan,
                    timestamp=nan,
                    area=nan):
-        self.fmf.add_frame(roi_img,timestamp)
+        if self.save_fmf:
+            self.fmf.add_frame(roi_img,timestamp)
+        else:
+            if roi_img is not None:
+                raise ValueError('not saving .fmf, but roi_img was given')
         if self.version==1:
             buf = struct.pack(chunk_fmt_v1,posx,posy,orientation,windowx,windowy,timestamp)
         elif self.version==2:
