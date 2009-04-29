@@ -3,14 +3,14 @@ import numpy as np
 from numpy import nan
 import sys, struct
 import unittest
-import os, tempfile, shutil
+import os, tempfile, shutil, warnings
 
 header_fmt = 'iii'
 chunk_fmt_v1 = 'dddddd'
 chunk_fmt_v2 = 'ddddddd'
 
-fields_v1 = ('posx','posy','orientation','windowx','windowy','timestamp')
-fields_v2 = ('posx','posy','orientation','windowx','windowy','timestamp','area')
+fields_v1 = ('posx','posy','slope','windowx','windowy','timestamp')
+fields_v2 = ('posx','posy','slope','windowx','windowy','timestamp','area')
 
 VALID_VERSIONS = (1,2)
 
@@ -49,19 +49,25 @@ class TraxDataWriter:
 
     def write_data(self,roi_img=None,
                    posx=nan,posy=nan,
-                   orientation=nan,
+                   orientation=None,
                    windowx=nan,windowy=nan,
                    timestamp=nan,
-                   area=nan):
+                   area=nan,
+                   slope=None):
         if self.save_fmf:
             self.fmf.add_frame(roi_img,timestamp)
         else:
             if roi_img is not None:
                 raise ValueError('not saving .fmf, but roi_img was given')
+        if slope is not None and orientation is not None:
+            raise ValueError('both slope and orientation were given')
+        if slope is None:
+            slope=orientation
+            warnings.warn('using old orientation parameter name',warnings.DeprecationWarning)
         if self.version==1:
-            buf = struct.pack(chunk_fmt_v1,posx,posy,orientation,windowx,windowy,timestamp)
+            buf = struct.pack(chunk_fmt_v1,posx,posy,slope,windowx,windowy,timestamp)
         elif self.version==2:
-            buf = struct.pack(chunk_fmt_v2,posx,posy,orientation,windowx,windowy,timestamp,area)
+            buf = struct.pack(chunk_fmt_v2,posx,posy,slope,windowx,windowy,timestamp,area)
         self.data_fd.write( buf )
 
 def readtrax(fname,return_structured_array=False):
