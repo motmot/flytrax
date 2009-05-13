@@ -34,7 +34,7 @@ class TraxDataWriter:
         self.data_fd.write( struct.pack(header_fmt,
                                         self.version,
                                         bgimage.shape[0],
-                                        bgimage.shape[1] )) # version, shape[0], shape[1]
+                                        bgimage.shape[1] ))
         self.data_fd.write( bgimage.tostring() )
 
         self.save_fmf = save_fmf
@@ -63,11 +63,14 @@ class TraxDataWriter:
             raise ValueError('both slope and orientation were given')
         if slope is None:
             slope=orientation
-            warnings.warn('using old orientation parameter name',DeprecationWarning)
+            warnings.warn('using old orientation parameter name',
+                          DeprecationWarning)
         if self.version==1:
-            buf = struct.pack(chunk_fmt_v1,posx,posy,slope,windowx,windowy,timestamp)
+            buf = struct.pack(chunk_fmt_v1,posx,posy,slope,
+                              windowx,windowy,timestamp)
         elif self.version==2:
-            buf = struct.pack(chunk_fmt_v2,posx,posy,slope,windowx,windowy,timestamp,area)
+            buf = struct.pack(chunk_fmt_v2,posx,posy,slope,
+                              windowx,windowy,timestamp,area)
         self.data_fd.write( buf )
 
 def readtrax(fname,return_structured_array=False):
