@@ -63,7 +63,7 @@ class TraxDataWriter:
             raise ValueError('both slope and orientation were given')
         if slope is None:
             slope=orientation
-            warnings.warn('using old orientation parameter name',warnings.DeprecationWarning)
+            warnings.warn('using old orientation parameter name',DeprecationWarning)
         if self.version==1:
             buf = struct.pack(chunk_fmt_v1,posx,posy,slope,windowx,windowy,timestamp)
         elif self.version==2:
