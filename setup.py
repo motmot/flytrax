@@ -9,7 +9,7 @@ if not int(os.getenv('DISABLE_INSTALL_REQUIRES','0')):
 
 setup(name='motmot.flytrax',
      description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
-     version='0.5.7+git',
+     version='0.5.8',
      license='BSD',
      author='Andrew Straw',
      author_email='strawman@astraw.com',
