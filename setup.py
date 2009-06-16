@@ -18,6 +18,7 @@ setup(name='motmot.flytrax',
        'motmot.fview.plugins':'flytrax = motmot.flytrax.flytrax:Tracker',
        'console_scripts': [
            'flytrax_print_info = motmot.flytrax.traxio:print_info_main',
+           'trx2fullframefmf = motmot.flytrax.trx2fullframefmf:main',
            ],
        'gui_scripts': [
            'flytrax_replay = motmot.flytrax.trax_replay:main',
