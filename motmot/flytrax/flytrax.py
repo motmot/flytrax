@@ -30,7 +30,7 @@ try:
 except ImportError:
     import flytrax.trax_udp_sender as trax_udp_sender
 
-import motmot.wxvideo.wxvideo as wxvideo
+import motmot.wxglvideo.simple_overlay as wxvideo
 import motmot.imops.imops as imops
 import motmot.FastImage.FastImage as FastImage
 
