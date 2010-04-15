@@ -802,7 +802,8 @@ class Tracker(trax_udp_sender.UDPSender):
     def process_frame(self,cam_id,buf,buf_offset,timestamp,framenumber):
         if self.pixel_format[cam_id]=='YUV422':
             buf = imops.yuv422_to_mono8( numpy.asarray(buf) ) # convert
-        elif not self.pixel_format[cam_id].startswith('MONO8'):
+        elif not (self.pixel_format[cam_id].startswith('MONO8') or
+                  self.pixel_format[cam_id].startswith('RAW8')):
             warnings.warn("flytrax plugin incompatible with data format")
             return [], []
 
