@@ -546,6 +546,8 @@ class Tracker(trax_udp_sender.UDPSender):
         self.full_frame_live[cam_id] = FastImage.FastImage8u( max_frame_size )
         self.running_mean_im[cam_id] = FastImage.FastImage32f( max_frame_size)
 
+        self.frame.Fit()
+
     def get_buffer_allocator(self,cam_id):
         return BufferAllocator()
 
