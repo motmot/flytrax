@@ -2,10 +2,6 @@ from setuptools import setup, find_packages
 import os
 
 kws = {}
-if not int(os.getenv('DISABLE_INSTALL_REQUIRES','0')):
-    kws['install_requires']=[
-        'motmot.FlyMovieFormat',
-        ]
 
 setup(name='motmot.flytrax',
      description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
