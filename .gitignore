@@ -1,5 +1,8 @@
 *.pyc
 dist
 build
+msg/lisp
+msg_gen
+src
 *~
 motmot.flytrax.egg-info/requires.txt
