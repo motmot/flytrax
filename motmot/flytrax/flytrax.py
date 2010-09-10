@@ -21,7 +21,7 @@ from __future__ import division
 #  3) Display/Save/Send ROIs. These are collected by
 #  _process_frame_extract_roi() during the process_frame() call.
 
-import sys, threading, Queue, time, socket, math, struct, os, warnings
+import sys, threading, Queue, time, socket, math, struct, os, warnings, re
 import pkg_resources
 import traxio
 
@@ -38,6 +38,20 @@ import motmot.wxvalidatedtext.wxvalidatedtext as wxvt
 import wx
 from wx import xrc
 import scipy.io
+
+try:
+    import roslib
+    have_ROS = True
+except ImportError, err:
+    have_ROS = False
+
+if have_ROS:
+    roslib.load_manifest('flytrax_ros')
+    import flytrax_ros
+    from flytrax_ros.msg import FlytraxInfo, TrackedObject
+    from sensor_msgs.msg import Image
+    import rospy
+    import rospy.core
 
 RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extraction
 RES = xrc.EmptyXmlResource()
@@ -84,6 +98,13 @@ class LockedValue:
             pass
         return self._val
 
+def topic_prefix_validator(test_string):
+    matchobj = re.match(r'^\w*$',test_string)
+    if matchobj is not None:
+        return True
+    else:
+        return False
+
 class Tracker(object):
     def __init__(self,wx_parent):
         self.wx_parent = wx_parent
@@ -94,6 +115,14 @@ class Tracker(object):
         self.status_message2 = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE2")
         self.new_image = False
 
+        if have_ROS:
+            self.publisher_lock = threading.Lock()
+            self.publisher = None
+            rospy.init_node('flytrax',
+                            anonymous=True, # allow multiple instances to run
+                            disable_signals=True, # let WX intercept them
+                            )
+
         self.cam_ids = []
         self.process_frame_cam_ids = []
         self.pixel_format = {}
@@ -102,6 +131,8 @@ class Tracker(object):
 
         self.view_mask_mode = {}
         self.newmask = {}
+
+        self.topic_prefix = ''
 
         self.data_queues = {}
         self.wxmessage_queues = {}
@@ -198,13 +229,27 @@ class Tracker(object):
         self.roi_sz_lock = threading.Lock()
         self.roi_display_sz = FastImage.Size( 100, 100 ) # width, height
         self.roi_save_fmf_sz = FastImage.Size( 100, 100 ) # width, height
-        self.roi_send_sz = FastImage.Size( 20, 20 ) # width, height
+        self.ros_send_sz = FastImage.Size( 20, 20 ) # width, height
 
-###############
+        ###############
 
         ctrl = xrc.XRCCTRL(self.frame,'EDIT_GLOBAL_OPTIONS')
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditGlobalOptions)
         self.options_dlg = RES.LoadDialog(self.frame,"OPTIONS_DIALOG")
+
+        ###############
+        # ROS stuff
+
+        self.topic_prefix_ctrl = xrc.XRCCTRL(self.frame,"ROS_TOPIC_PREFIX")
+        self.topic_prefix_ctrl.SetValue( str(self.topic_prefix ))
+        self.topic_prefix_validator = wxvt.Validator(self.topic_prefix_ctrl,
+                                                     self.topic_prefix_ctrl.GetId(),
+                                                     self.OnSetTopicPrefix,
+                                                     topic_prefix_validator)
+        self.OnSetTopicPrefix(None) # setup initial ROS publisher
+
+        ###############
+
 
         def validate_roi_dimension(value):
             try:
@@ -252,6 +297,24 @@ class Tracker(object):
 
     def get_frame(self):
         return self.frame
+
+    def OnSetTopicPrefix(self, event):
+        value = self.topic_prefix_ctrl.GetValue().encode('ascii')
+        # our validator ensured this is in [a-zA-Z0-9_] and thus ASCII
+        self.topic_prefix = value
+
+        with self.publisher_lock:
+            # unregister old publisher
+            if self.publisher is not None:
+                self.publisher.unregister()
+
+            # register a new publisher
+            if have_ROS:
+                 self.publisher = rospy.Publisher('%s/flytrax_info'%self.topic_prefix,
+                                                  FlytraxInfo,
+                                                  tcp_nodelay=True,
+                                                  )
+
 
     def OnEditGlobalOptions(self, event):
         self.options_dlg.Show()
@@ -463,7 +526,7 @@ class Tracker(object):
         ##############
 
         # setup non-GUI stuff
-        max_num_points = 1
+        max_num_points = 4
         self.cam_ids.append(cam_id)
 
         self.display_active[cam_id] = threading.Event()
@@ -909,7 +972,7 @@ class Tracker(object):
                     srcfi = FastImage.FastImage8u(max_frame_size)
                     srcfi_roi = srcfi.roi(l,b,fibuf.size)
                     fibuf.get_8u_copy_put(srcfi_roi, fibuf.size)
-                    
+
                 running_mean8u_im = realtime_analyzer.get_image_view('mean')
                 # maintain running average
                 running_mean_im.toself_add_weighted( srcfi, max_frame_size, alpha )
@@ -944,7 +1007,7 @@ class Tracker(object):
             try:
                 roi_display_sz = self.roi_display_sz
                 roi_save_fmf_sz = self.roi_save_fmf_sz
-                roi_send_sz = self.roi_send_sz
+                ros_send_sz = self.ros_send_sz
             finally:
                 self.roi_sz_lock.release()
 
@@ -956,11 +1019,6 @@ class Tracker(object):
                 points, roi_save_fmf_sz,
                 fibuf, buf_offset, full_frame_live,
                 max_frame_size)
-            roi_send, (udp_send_x0, udp_send_y0) = self._process_frame_extract_roi(
-                points, roi_send_sz,
-                fibuf, buf_offset, full_frame_live,
-                max_frame_size)
-
 
             n_pts = len(points)
 
@@ -997,6 +1055,55 @@ class Tracker(object):
                 if DEBUGROI_IM:
                     self.debugroi_image = debugroi
                 self.image_update_lock.release()
+
+        if n_pts and have_ROS:
+            stamp = rospy.Time.from_sec(timestamp)
+
+            msg = FlytraxInfo()
+            msg.framenumber = framenumber
+            msg.stamp = stamp
+            msg.cam_id = cam_id
+
+            tracked_objects = []
+            for ptnum,this_point in enumerate(points):
+                ros_send, (ros_send_x0, ros_send_y0) = self._process_frame_extract_roi(
+                    [this_point], ros_send_sz,
+                    fibuf, buf_offset, full_frame_live,
+                    max_frame_size)
+
+                tracked_object = TrackedObject()
+
+                (x,y,area,slope,eccentricity)=this_point[:5]
+                tracked_object.x = x
+                tracked_object.y = y
+                tracked_object.slope = slope
+                tracked_object.area = area
+                tracked_object.eccentricity = eccentricity
+
+                if 1:
+                    # fill tracked_object.image
+                    tracked_object.image = Image()
+                    im = tracked_object.image # shorthand
+                    im.header.seq = framenumber
+                    im.header.stamp = stamp
+                    im.header.frame_id = '0'
+
+                    tracked_object.imbufx = ros_send_x0
+                    tracked_object.imbufy = ros_send_y0
+                    npbuf = numpy.array(ros_send)
+                    (height,width) = npbuf.shape
+
+                    im.height = height
+                    im.width = width
+                    im.encoding = 'MONO8'
+                    im.step = width
+                    im.data = npbuf.tostring() # let numpy convert to string
+
+                tracked_objects.append( tracked_object )
+            msg.tracked_objects = tracked_objects
+
+            with self.publisher_lock:
+                self.publisher.publish(msg)
 
         if n_pts:
             self.last_detection_list.append((x,y))

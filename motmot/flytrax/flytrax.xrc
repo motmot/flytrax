@@ -314,6 +314,16 @@
                   <orient>wxHORIZONTAL</orient>
                   
                   
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>ROS topic prefix:</label>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="ROS_TOPIC_PREFIX"/>
+                    <option>1</option>
+                    <flag>wxALL|wxEXPAND</flag>
+                  </object>
                 </object>
                 <option>0</option>
                 <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
