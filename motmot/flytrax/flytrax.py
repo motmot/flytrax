@@ -1106,12 +1106,15 @@ class Tracker(object):
                 self.publisher.publish(msg)
 
         if n_pts:
-            self.last_detection_list.append((x,y))
+            this_list = [ (pt[0], pt[1]) for pt in points ]
+            self.last_detection_list.append(this_list)
         else:
             self.last_detection_list.append(None)
         if len(self.last_detection_list) > history_buflen_value:
             self.last_detection_list = self.last_detection_list[-history_buflen_value:]
-        draw_points.extend([p for p in self.last_detection_list if p is not None])
+        for this_list in self.last_detection_list:
+            if this_list is not None:
+                draw_points.extend(this_list)
         return draw_points, draw_linesegs
 
     def display_message(self,msg,duration_msec=2000):
