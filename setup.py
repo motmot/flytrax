@@ -1,8 +1,6 @@
 from setuptools import setup, find_packages
 import os
 
-kws = {}
-
 setup(name='motmot.flytrax',
      description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
      version='0.5.8',
@@ -26,4 +24,4 @@ setup(name='motmot.flytrax',
       package_data = {'motmot.flytrax':['*.xrc',
                                         '*.m', # include matlab reader...
                                         ]},
-      **kws)
+      )
