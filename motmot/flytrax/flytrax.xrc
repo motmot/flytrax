@@ -251,7 +251,7 @@
                   </object>
                   <object class="sizeritem">
                     <object class="wxTextCtrl" name="HISTORY_BUFFER_LENGTH">
-                      <value></value>
+                      <value/>
                       <style>wxTE_PROCESS_ENTER</style>
                       <tooltip>Threshold of minimum difference from mean image</tooltip>
                     </object>
@@ -290,7 +290,7 @@
               <object class="sizeritem">
                 <object class="wxNotebook" name="FLYTRAX_NOTEBOOK">
                   <object class="notebookpage">
-                    <label></label>
+                    <label/>
                     <object class="wxPanel" name="NO_CAM_PANEL">
                       <object class="wxBoxSizer">
                         <orient>wxVERTICAL</orient>
@@ -312,19 +312,8 @@
                 <object class="wxStaticBoxSizer">
                   <label>realtime output control</label>
                   <orient>wxHORIZONTAL</orient>
-                  <object class="sizeritem">
-                    <object class="wxCheckBox" name="SEND_TO_IP_ENABLED">
-                      <label>send data to 0 receiver(s)</label>
-                      <checked>0</checked>
-                    </object>
-                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxButton" name="EDIT_UDP_RECEIVERS">
-                      <label>Edit sendto list...</label>
-                    </object>
-                    <option>1</option>
-                  </object>
+                  
+                  
                 </object>
                 <option>0</option>
                 <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
@@ -333,7 +322,7 @@
               <object class="sizeritem">
                 <object class="wxButton" name="EDIT_GLOBAL_OPTIONS">
                   <label>options...</label>
-                  <style></style>
+                  <style/>
                 </object>
                 <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTRE_HORIZONTAL</flag>
                 <border>10</border>
@@ -401,7 +390,7 @@
                   <orient>wxHORIZONTAL</orient>
                   <object class="sizeritem">
                     <object class="wxStaticText" name="STATUS_MESSAGE">
-                      <label></label>
+                      <label/>
                     </object>
                     <option>1</option>
                     <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
@@ -419,7 +408,7 @@
                   <orient>wxHORIZONTAL</orient>
                   <object class="sizeritem">
                     <object class="wxStaticText" name="STATUS_MESSAGE2">
-                      <label></label>
+                      <label/>
                     </object>
                     <option>1</option>
                     <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
@@ -459,8 +448,8 @@
           </object>
           <object class="sizeritem">
             <object class="wxSlider" name="MASK_X_CENTER">
-              <value></value>
-              <min></min>
+              <value/>
+              <min/>
               <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>center (x)</tooltip>
@@ -477,8 +466,8 @@
           </object>
           <object class="sizeritem">
             <object class="wxSlider" name="MASK_Y_CENTER">
-              <value></value>
-              <min></min>
+              <value/>
+              <min/>
               <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>center (y)</tooltip>
@@ -494,8 +483,8 @@
           </object>
           <object class="sizeritem">
             <object class="wxSlider" name="MASK_RADIUS">
-              <value></value>
-              <min></min>
+              <value/>
+              <min/>
               <max>1</max>
               <style>wxSL_AUTOTICKS|wxSL_LABELS</style>
               <tooltip>radius</tooltip>
@@ -528,7 +517,7 @@
               <growablecols>2</growablecols>
               <object class="sizeritem">
                 <object class="wxStaticText">
-                  <label></label>
+                  <label/>
                 </object>
               </object>
               <object class="sizeritem">

@@ -25,11 +25,6 @@ import sys, threading, Queue, time, socket, math, struct, os, warnings
 import pkg_resources
 import traxio
 
-try:
-    import trax_udp_sender
-except ImportError:
-    import flytrax.trax_udp_sender as trax_udp_sender
-
 import motmot.wxvideo.wxvideo as wxvideo
 import motmot.imops.imops as imops
 import motmot.FastImage.FastImage as FastImage
@@ -89,15 +84,10 @@ class LockedValue:
             pass
         return self._val
 
-class Tracker(trax_udp_sender.UDPSender):
+class Tracker(object):
     def __init__(self,wx_parent):
         self.wx_parent = wx_parent
         self.frame = RES.LoadFrame(self.wx_parent,"FLYTRAX_FRAME") # make frame main panel
-
-        trax_udp_sender.UDPSender.__init__(self,self.frame)
-        self.last_n_downstream_hosts = None
-        ctrl = xrc.XRCCTRL(self.frame,"EDIT_UDP_RECEIVERS")
-        ctrl.Bind( wx.EVT_BUTTON, self.OnEditUDPReceivers)
 
         self.frame_nb = xrc.XRCCTRL(self.frame,"FLYTRAX_NOTEBOOK")
         self.status_message = xrc.XRCCTRL(self.frame,"STATUS_MESSAGE")
@@ -162,10 +152,6 @@ class Tracker(trax_udp_sender.UDPSender):
 
         self.bg_update_lock = threading.Lock()
 
-        self.send_over_ip = threading.Event()
-
-        self.sockobj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
         self.minimum_eccentricity = 1.5
 
         self.per_cam_panel = {}
@@ -215,14 +201,6 @@ class Tracker(trax_udp_sender.UDPSender):
         self.roi_send_sz = FastImage.Size( 20, 20 ) # width, height
 
 ###############
-
-        send_to_ip_enabled_widget = xrc.XRCCTRL(self.frame,"SEND_TO_IP_ENABLED")
-        send_to_ip_enabled_widget.Bind( wx.EVT_CHECKBOX,
-                                        self.OnEnableSendToIP)
-        if send_to_ip_enabled_widget.IsChecked():
-            self.send_over_ip.set()
-        else:
-            self.send_over_ip.clear()
 
         ctrl = xrc.XRCCTRL(self.frame,'EDIT_GLOBAL_OPTIONS')
         ctrl.Bind( wx.EVT_BUTTON, self.OnEditGlobalOptions)
@@ -994,31 +972,6 @@ class Tracker(trax_udp_sender.UDPSender):
                 numdata = (x,y, slope, fmf_save_x0, fmf_save_y0, timestamp, area, framenumber)
                 data = (roi_save_fmf, numdata)
                 data_queue.put( data )
-
-                runthread_remote_host = self.get_downstream_hosts()
-
-                n_downstream_hosts = len(runthread_remote_host)
-                if self.last_n_downstream_hosts != n_downstream_hosts:
-                    ctrl = xrc.XRCCTRL(self.frame,'SEND_TO_IP_ENABLED')
-                    ctrl.SetLabel('send data to %d receiver(s)'%n_downstream_hosts)
-                    self.last_n_downstream_hosts = n_downstream_hosts
-
-                # send data over UDP
-                if self.send_over_ip.isSet() and runthread_remote_host is not None:
-                    # XXX send these data
-                    a = (roi_send, udp_send_x0, udp_send_y0)
-                    databuf1 = struct.pack('cBLdfffffBBII',
-                                           'e',cam_no,framenumber,timestamp,
-                                           x,y,area,slope,eccentricity,
-                                           roi_send.size.w,roi_send.size.h,
-                                           udp_send_x0,udp_send_y0)
-                    databuf2 = numpy.array(roi_send).tostring()
-                    databuf = databuf1 + databuf2
-                    #assert len(databuf2) == roi_send.size.w * roi_send.size.h
-                    #print 'transmitting %d bytes to %d hosts'%(
-                    #    len(databuf),len(self.runthread_remote_host))
-                    for remote_host in runthread_remote_host:
-                        self.sockobj.sendto( databuf, remote_host)
 
             if BGROI_IM:
                 running_mean8u_im = realtime_analyzer.get_image_view('mean')
