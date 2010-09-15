@@ -48,7 +48,7 @@ except ImportError, err:
 if have_ROS:
     roslib.load_manifest('flytrax_ros')
     import flytrax_ros
-    from flytrax_ros.msg import FlytraxInfo, TrackedObject
+    from flytrax_ros.msg import FlytraxInfo, Detection
     from sensor_msgs.msg import Image
     import rospy
     import rospy.core
@@ -1064,32 +1064,32 @@ class Tracker(object):
             msg.stamp = stamp
             msg.cam_id = cam_id
 
-            tracked_objects = []
+            detections = []
             for ptnum,this_point in enumerate(points):
                 ros_send, (ros_send_x0, ros_send_y0) = self._process_frame_extract_roi(
                     [this_point], ros_send_sz,
                     fibuf, buf_offset, full_frame_live,
                     max_frame_size)
 
-                tracked_object = TrackedObject()
+                detection = Detection()
 
                 (x,y,area,slope,eccentricity)=this_point[:5]
-                tracked_object.x = x
-                tracked_object.y = y
-                tracked_object.slope = slope
-                tracked_object.area = area
-                tracked_object.eccentricity = eccentricity
+                detection.x = x
+                detection.y = y
+                detection.slope = slope
+                detection.area = area
+                detection.eccentricity = eccentricity
 
                 if 1:
-                    # fill tracked_object.image
-                    tracked_object.image = Image()
-                    im = tracked_object.image # shorthand
+                    # fill detection.image
+                    detection.image = Image()
+                    im = detection.image # shorthand
                     im.header.seq = framenumber
                     im.header.stamp = stamp
                     im.header.frame_id = '0'
 
-                    tracked_object.imbufx = ros_send_x0
-                    tracked_object.imbufy = ros_send_y0
+                    detection.imbufx = ros_send_x0
+                    detection.imbufy = ros_send_y0
                     npbuf = numpy.array(ros_send)
                     (height,width) = npbuf.shape
 
@@ -1099,8 +1099,8 @@ class Tracker(object):
                     im.step = width
                     im.data = npbuf.tostring() # let numpy convert to string
 
-                tracked_objects.append( tracked_object )
-            msg.tracked_objects = tracked_objects
+                detections.append( detection )
+            msg.detections = detections
 
             with self.publisher_lock:
                 self.publisher.publish(msg)
