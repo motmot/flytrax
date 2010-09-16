@@ -132,15 +132,12 @@ class Tracker(object):
 
         self.topic_prefix = ''
 
-        self.data_queues = {}
         self.wxmessage_queues = {}
-        self.trx_writer = {}
 
         self.clear_and_take_bg_image = {}
         self.load_bg_image = {}
         self.enable_ongoing_bg_image = {}
 
-        self.save_nth_frame = {}
         self.ongoing_bg_image_num_images = {}
         self.ongoing_bg_image_update_interval = {}
 
@@ -439,31 +436,6 @@ class Tracker(object):
             ignore_initial_value=True)
         self.xrcid2validator[cam_id]["HISTORY_BUFFER_LENGTH"] = validator
 
-        start_recording_widget = xrc.XRCCTRL(per_cam_panel,"START_RECORDING")
-        self.widget2cam_id[start_recording_widget]=cam_id
-        wx.EVT_BUTTON(start_recording_widget,
-                      start_recording_widget.GetId(),
-                      self.OnStartRecording)
-
-        stop_recording_widget = xrc.XRCCTRL(per_cam_panel,"STOP_RECORDING")
-        self.widget2cam_id[stop_recording_widget]=cam_id
-        wx.EVT_BUTTON(stop_recording_widget,
-                      stop_recording_widget.GetId(),
-                      self.OnStopRecording)
-
-        save_status_widget = xrc.XRCCTRL(per_cam_panel,"SAVE_STATUS")
-        self.save_status_widget[cam_id] = save_status_widget
-
-        ctrl = xrc.XRCCTRL(per_cam_panel,"SAVE_NTH_FRAME")
-        self.widget2cam_id[ctrl]=cam_id
-        wxvt.setup_validated_integer_callback(
-            ctrl,ctrl.GetId(),self.OnSaveNthFrame)
-        self.OnSaveNthFrame(force_cam_id=cam_id)
-
-        self.save_data_prefix_widget[cam_id] = xrc.XRCCTRL(
-            per_cam_panel,"SAVE_DATA_PREFIX")
-        self.widget2cam_id[self.save_data_prefix_widget[cam_id]]=cam_id
-
 #####################
 
         ctrl = xrc.XRCCTRL(per_cam_panel,"EDIT_MASK_BUTTON")
@@ -520,7 +492,6 @@ class Tracker(object):
         self.view_mask_mode[cam_id] = threading.Event()
         self.newmask[cam_id] = SharedValue()
 
-        self.data_queues[cam_id] = Queue.Queue()
         self.wxmessage_queues[cam_id] = Queue.Queue()
         self.clear_and_take_bg_image[cam_id] = threading.Event()
         self.load_bg_image[cam_id] = Queue.Queue()
@@ -595,34 +566,9 @@ class Tracker(object):
         cam_id = self.widget2cam_id[widget]
         self.edit_mask_dlg[cam_id].Show()
 
-    def OnSaveNthFrame(self,event=None,force_cam_id=None):
-        if event is None:
-            assert force_cam_id is not None
-            cam_id = force_cam_id
-        else:
-            widget = event.GetEventObject()
-            cam_id = self.widget2cam_id[widget]
-        per_cam_panel = self.per_cam_panel[cam_id]
-        ctrl = xrc.XRCCTRL(per_cam_panel,"SAVE_NTH_FRAME")
-        intval = int(ctrl.GetValue())
-        self.save_nth_frame[cam_id] = intval
-
     def OnTakeBgImage(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
-
-        per_cam_panel = self.per_cam_panel[cam_id]
-        ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE_ALLOW_WHEN_SAVING")
-        if not ctrl.GetValue() and cam_id in self.trx_writer:
-
-            dlg = wx.MessageDialog(self.wx_parent,
-                                   'Saving data - cannot take background image',
-                                   'FlyTrax error',
-                                   wx.OK | wx.ICON_ERROR
-                                   )
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
 
         self.clear_and_take_bg_image[cam_id].set()
         self.display_message('capturing background image')
@@ -630,19 +576,6 @@ class Tracker(object):
     def OnLoadBgImage(self,event):
         widget = event.GetEventObject()
         cam_id = self.widget2cam_id[widget]
-
-        per_cam_panel = self.per_cam_panel[cam_id]
-        ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE_ALLOW_WHEN_SAVING")
-        if not ctrl.GetValue() and cam_id in self.trx_writer:
-
-            dlg = wx.MessageDialog(self.wx_parent,
-                                   'Saving data - cannot take background image',
-                                   'FlyTrax error',
-                                   wx.OK | wx.ICON_ERROR
-                                   )
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
 
         # open dialog
         dlg = wx.FileDialog( self.wx_parent, "open backsub output")
@@ -679,17 +612,6 @@ class Tracker(object):
         cam_id = self.widget2cam_id[widget]
 
         if widget.GetValue():
-            per_cam_panel = self.per_cam_panel[cam_id]
-            ctrl = xrc.XRCCTRL(per_cam_panel,"TAKE_BG_IMAGE_ALLOW_WHEN_SAVING")
-            if not ctrl.GetValue() and cam_id in self.trx_writer:
-                dlg = wx.MessageDialog(self.wx_parent,
-                                       'Saving data - cannot take background image',
-                                       'FlyTrax error',
-                                       wx.OK | wx.ICON_ERROR
-                                       )
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
             self.enable_ongoing_bg_image[cam_id].set()
         else:
             self.enable_ongoing_bg_image[cam_id].clear()
@@ -871,7 +793,6 @@ class Tracker(object):
         clear_and_take_bg_image = self.clear_and_take_bg_image[cam_id]
         load_bg_image = self.load_bg_image[cam_id]
         enable_ongoing_bg_image = self.enable_ongoing_bg_image[cam_id]
-        data_queue = self.data_queues[cam_id] # transfers images and data to non-realtime thread
         wxmessage_queue = self.wxmessage_queues[cam_id] # transfers and messages to non-realtime thread
         new_clear_threshold = self.new_clear_threshold[cam_id]
         new_diff_threshold = self.new_diff_threshold[cam_id]
@@ -1029,15 +950,6 @@ class Tracker(object):
 
             n_pts = len(points)
 
-            if n_pts:
-                pt = points[0] # only operate on first point
-                (x,y,area,slope,eccentricity)=pt[:5]
-
-                # put data in queue for saving
-                numdata = (x,y, slope, fmf_save_x0, fmf_save_y0, timestamp, area, framenumber)
-                data = (roi_save_fmf, numdata)
-                data_queue.put( data )
-
             if BGROI_IM:
                 running_mean8u_im = realtime_analyzer.get_image_view('mean')
                 tmp = running_mean8u_im.roi( display_x0, display_y0, self.roi_display_sz )
@@ -1125,24 +1037,6 @@ class Tracker(object):
         self.status_message.SetLabel('')
 
     def OnServiceIncomingData(self, evt):
-        for cam_id in self.cam_ids:
-            data_queue = self.data_queues[cam_id]
-            trx_writer = self.trx_writer.get(cam_id,None)
-            try:
-                while 1:
-                    data = data_queue.get(False) # don't block
-                    if trx_writer is not None: # saving data
-                        roi_img, numdata = data
-                        (posx, posy, orientation, windowx, windowy, timestamp, area, framenumber) = numdata
-                        if framenumber%self.save_nth_frame[cam_id] == 0:
-                            trx_writer.write_data(roi_img=roi_img,
-                                                  posx=posx,posy=posy,
-                                                  orientation=orientation,
-                                                  windowx=windowx,windowy=windowy,
-                                                  timestamp=timestamp,
-                                                  area=area)
-            except Queue.Empty:
-                pass
         self.update_screen()
 
         # show any messages
@@ -1199,70 +1093,8 @@ class Tracker(object):
                 circim[vals>0]=255
                 self.newmask[cam_id].set(((x,y,radius),circim))
 
-    def OnStartRecording(self,event):
-        widget = event.GetEventObject()
-        cam_id = self.widget2cam_id[widget]
-
-        if cam_id in self.trx_writer:
-            self.display_message("already saving data: not starting")
-            return
-
-        per_cam_panel = self.per_cam_panel[cam_id]
-        ctrl = xrc.XRCCTRL(per_cam_panel,"SAVE_NTH_FRAME")
-        ctrl.Enable(False)
-
-        ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_WIDTH')
-        ctrl.Enable(False)
-        ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_HEIGHT')
-        ctrl.Enable(False)
-
-        # grab background image from other thread
-        self.bg_update_lock.acquire()
-        bg_image = self.full_bg_image.get(cam_id,None)
-        self.bg_update_lock.release()
-
-        if bg_image is None:
-            dlg = wx.MessageDialog(self.wx_parent,
-                                   'No background image (%s)- cannot save data'%cam_id,
-                                   'FlyTrax error',
-                                   wx.OK | wx.ICON_ERROR
-                                   )
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-
-        cam_id = self.last_image_cam_id
-        prefix = self.save_data_prefix_widget[cam_id].GetValue()
-        fname = prefix+time.strftime('%Y%m%d_%H%M%S')
-        trx_writer = traxio.TraxDataWriter(fname,bg_image)
-        self.trx_writer[cam_id] = trx_writer
-        self.save_status_widget[cam_id].SetLabel('saving')
-        self.display_message('saving data to %s'%fname)
-
-    def OnStopRecording(self,event):
-        widget = event.GetEventObject()
-        cam_id = self.widget2cam_id[widget]
-
-        if cam_id in self.trx_writer:
-            self.trx_writer[cam_id].close()
-            del self.trx_writer[cam_id]
-            self.save_status_widget[cam_id].SetLabel('not saving')
-
-            per_cam_panel = self.per_cam_panel[cam_id]
-            ctrl = xrc.XRCCTRL(per_cam_panel,"SAVE_NTH_FRAME")
-            ctrl.Enable(True)
-        else:
-            self.display_message("not saving data: not stopping")
-
-        if not len(self.trx_writer):
-            ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_WIDTH')
-            ctrl.Enable(True)
-            ctrl = xrc.XRCCTRL(self.options_dlg,'ROI_SAVE_FMF_HEIGHT')
-            ctrl.Enable(True)
-
     def quit(self):
-        for trx_writer in self.trx_writer.itervalues():
-            trx_writer.close() # make sure all data savers close nicely
+        pass
 
     def update_screen(self):
         """Draw on screen

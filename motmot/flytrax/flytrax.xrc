@@ -22,13 +22,6 @@
             <border>2</border>
           </object>
           <object class="sizeritem">
-            <object class="wxCheckBox" name="TAKE_BG_IMAGE_ALLOW_WHEN_SAVING">
-              <label>Allow when saving output</label>
-              <checked>0</checked>
-            </object>
-            <flag>wxALIGN_CENTRE</flag>
-          </object>
-          <object class="sizeritem">
             <object class="wxStaticBoxSizer">
               <label>Ongoing background image updates</label>
               <orient>wxHORIZONTAL</orient>
@@ -163,89 +156,6 @@
             </object>
             <flag>wxALL|wxALIGN_CENTRE</flag>
             <border>2</border>
-          </object>
-        </object>
-        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
-        <border>10</border>
-      </object>
-      <object class="sizeritem">
-        <object class="wxStaticBoxSizer">
-          <label>save to disk control</label>
-          <orient>wxHORIZONTAL</orient>
-          <object class="sizeritem">
-            <object class="wxBoxSizer">
-              <orient>wxVERTICAL</orient>
-              <object class="sizeritem">
-                <object class="wxFlexGridSizer">
-                  <cols>2</cols>
-                  <object class="sizeritem">
-                    <object class="wxStaticText">
-                      <label>save data prefix:</label>
-                    </object>
-                    <flag>wxALL</flag>
-                    <border>2</border>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxTextCtrl" name="SAVE_DATA_PREFIX">
-                      <value>DATA</value>
-                      <style>wxTE_PROCESS_ENTER</style>
-                    </object>
-                    <option>1</option>
-                    <flag>wxEXPAND</flag>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxStaticText">
-                      <label>save Nth frame:</label>
-                    </object>
-                    <flag>wxALL</flag>
-                    <border>2</border>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxTextCtrl" name="SAVE_NTH_FRAME">
-                      <value>1</value>
-                      <style>wxTE_PROCESS_ENTER</style>
-                    </object>
-                    <option>1</option>
-                    <flag>wxEXPAND</flag>
-                  </object>
-                  <growablecols>1</growablecols>
-                </object>
-                <flag>wxEXPAND</flag>
-              </object>
-              <object class="sizeritem">
-                <object class="wxBoxSizer">
-                  <orient>wxHORIZONTAL</orient>
-                  <object class="sizeritem">
-                    <object class="wxButton" name="START_RECORDING">
-                      <label>record</label>
-                    </object>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxButton" name="STOP_RECORDING">
-                      <label>stop</label>
-                    </object>
-                  </object>
-                  <object class="sizeritem">
-                    <object class="wxStaticText" name="SAVE_STATUS">
-                      <label>not saving</label>
-                      <font>
-                        <size>14</size>
-                        <family>default</family>
-                        <style>normal</style>
-                        <weight>bold</weight>
-                        <underlined>0</underlined>
-                        <face>Sans</face>
-                      </font>
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTRE</flag>
-                    <border>2</border>
-                  </object>
-                </object>
-                <flag>wxALIGN_CENTRE</flag>
-              </object>
-            </object>
-            <option>1</option>
-            <flag>wxEXPAND</flag>
           </object>
         </object>
         <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
