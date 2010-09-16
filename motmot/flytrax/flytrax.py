@@ -270,6 +270,7 @@ class Tracker(trax_udp_sender.UDPSender):
 
         self.full_bg_image = {}
         self.xrcid2validator = {}
+        self.max_num_points={}
 
     def get_frame(self):
         return self.frame
@@ -484,7 +485,6 @@ class Tracker(trax_udp_sender.UDPSender):
         ##############
 
         # setup non-GUI stuff
-        max_num_points = 1
         self.cam_ids.append(cam_id)
 
         self.display_active[cam_id] = threading.Event()
@@ -511,10 +511,12 @@ class Tracker(trax_udp_sender.UDPSender):
         self.ticks_since_last_update[cam_id] = 0
         lbrt = (0,0,max_width-1,max_height-1)
         roi2_radius=61
+        self.max_num_points[cam_id]=SharedValue()
+        self.max_num_points[cam_id].set(8)
         ra = realtime_image_analysis.RealtimeAnalyzer(lbrt,
                                                       max_width,
                                                       max_height,
-                                                      max_num_points,
+                                                      self.max_num_points[cam_id].get_nowait(),
                                                       roi2_radius)
         self.realtime_analyzer[cam_id] = ra
 
@@ -525,6 +527,17 @@ class Tracker(trax_udp_sender.UDPSender):
         ctrl = xrc.XRCCTRL(per_cam_panel,"HISTORY_BUFFER_LENGTH")
         validator = self.xrcid2validator[cam_id]["HISTORY_BUFFER_LENGTH"]
         ctrl.SetValue( '%d'%self.history_buflen_value[cam_id])
+        validator.set_state('valid')
+
+        ctrl = xrc.XRCCTRL(per_cam_panel,"MAX_NUM_POINTS")
+        self.widget2cam_id[ctrl]=cam_id
+        validator = wxvt.setup_validated_integer_callback(
+            ctrl,
+            ctrl.GetId(),
+            self.OnMaxNPoints,
+            ignore_initial_value=True)
+        self.xrcid2validator[cam_id]["MAX_NUM_POINTS"] = validator
+        ctrl.SetValue(str(self.max_num_points[cam_id].get_nowait()))
         validator.set_state('valid')
 
         self.clear_threshold_value[cam_id] = ra.clear_threshold
@@ -800,6 +813,19 @@ class Tracker(trax_udp_sender.UDPSender):
 
         return software_roi, (x0,y0)
 
+    def OnMaxNPoints(self,event):
+        widget = event.GetEventObject()
+        cam_id = self.widget2cam_id[widget]
+
+        newvalstr = widget.GetValue()
+        try:
+            newval = int(newvalstr)
+        except ValueError:
+            pass
+        else:
+            self.max_num_points[cam_id].set( newval )
+        event.Skip()
+
     def process_frame(self,cam_id,buf,buf_offset,timestamp,framenumber):
         if self.pixel_format[cam_id]=='YUV422':
             buf = imops.yuv422_to_mono8( numpy.asarray(buf) ) # convert
@@ -850,6 +876,7 @@ class Tracker(trax_udp_sender.UDPSender):
             assert newmask_fi.size == max_frame_size
             mask_im = realtime_analyzer.get_image_view('mask')
             newmask_fi.get_8u_copy_put(mask_im, max_frame_size)
+            del mask_im # don't leak view into other thread
 
         if view_mask_mode.isSet():
 
@@ -953,6 +980,8 @@ class Tracker(trax_udp_sender.UDPSender):
 
         n_pts = 0
         if self.tracking_enabled[cam_id].isSet():
+            max_num_points = self.max_num_points[cam_id].get_nowait()
+            realtime_analyzer.max_num_points = max_num_points # AttributeError here means old realtime_image_analysis
             points = realtime_analyzer.do_work(fibuf,
                                                timestamp, framenumber, use_roi2,
                                                use_cmp=use_cmp)
