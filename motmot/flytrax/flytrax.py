@@ -105,7 +105,6 @@ class Tracker(trax_udp_sender.UDPSender):
         self.new_image = False
 
         self.cam_ids = []
-        self.process_frame_cam_ids = []
         self.pixel_format = {}
 
         self.use_roi2 = {}
@@ -808,10 +807,6 @@ class Tracker(trax_udp_sender.UDPSender):
                   self.pixel_format[cam_id].startswith('RAW8')):
             warnings.warn("flytrax plugin incompatible with data format")
             return [], []
-
-        if cam_id not in self.process_frame_cam_ids:
-            self.process_frame_cam_ids.append( cam_id )
-        cam_no = self.process_frame_cam_ids.index( cam_id )
 
         self.ticks_since_last_update[cam_id] += 1
         start = time.time()
