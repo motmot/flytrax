@@ -253,7 +253,7 @@
                     <object class="wxTextCtrl" name="HISTORY_BUFFER_LENGTH">
                       <value></value>
                       <style>wxTE_PROCESS_ENTER</style>
-                      <tooltip>Threshold of minimum difference from mean image</tooltip>
+                      <tooltip>History buffer length</tooltip>
                     </object>
                     <option>1</option>
                   </object>
