@@ -57,7 +57,6 @@ RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extr
 RES = xrc.EmptyXmlResource()
 RES.LoadFromString(open(RESFILE).read())
 BGROI_IM=True
-DEBUGROI_IM=True
 
 class BufferAllocator:
     def __call__(self, w, h):
@@ -214,18 +213,6 @@ class Tracker(object):
             bgroi_view_panel.SetAutoLayout(True)
             bgroi_view_panel.Layout()
 
-        if 1:
-            # debugroi view
-            debugroi_view_panel = xrc.XRCCTRL(self.frame,"DIFF_VIEW_PANEL")
-            box = wx.BoxSizer(wx.VERTICAL)
-            debugroi_view_panel.SetSizer(box)
-
-            self.debugroi_canvas = wxvideo.DynamicImageCanvas(debugroi_view_panel,-1)
-
-            box.Add(self.debugroi_canvas,1,wx.EXPAND)
-            debugroi_view_panel.SetAutoLayout(True)
-            debugroi_view_panel.Layout()
-
         self.roi_sz_lock = threading.Lock()
         self.roi_display_sz = FastImage.Size( 100, 100 ) # width, height
         self.roi_save_fmf_sz = FastImage.Size( 100, 100 ) # width, height
@@ -343,15 +330,11 @@ class Tracker(object):
         self.live_canvas.set_flip_LR(val)
         if BGROI_IM:
             self.bgroi_canvas.set_flip_LR(val)
-        if DEBUGROI_IM:
-            self.debugroi_canvas.set_flip_LR(val)
 
     def set_view_rotate_180(self,val):
         self.live_canvas.set_rotate_180(val)
         if BGROI_IM:
             self.bgroi_canvas.set_rotate_180(val)
-        if DEBUGROI_IM:
-            self.debugroi_canvas.set_rotate_180(val)
 
     def camera_starting_notification(self,
                                      cam_id,
@@ -1036,11 +1019,6 @@ class Tracker(object):
                 tmp = running_mean8u_im.roi( display_x0, display_y0, self.roi_display_sz )
                 bgroi = tmp.get_8u_copy(tmp.size) # copy
 
-            if DEBUGROI_IM:
-                absdiff_im = realtime_analyzer.get_image_view('absdiff')
-                tmp = absdiff_im.roi( display_x0, display_y0, self.roi_display_sz )
-                debugroi = tmp.get_8u_copy(tmp.size) # copy
-
             # live display of image
             if display_active.isSet():
                 self.image_update_lock.acquire()
@@ -1052,8 +1030,6 @@ class Tracker(object):
                 self.new_image = True
                 if BGROI_IM:
                     self.bgroi_image = bgroi
-                if DEBUGROI_IM:
-                    self.debugroi_image = debugroi
                 self.image_update_lock.release()
 
         if n_pts and have_ROS:
@@ -1280,8 +1256,6 @@ class Tracker(object):
             im = self.last_image
             if BGROI_IM:
                 bgroi_im = self.bgroi_image
-            if DEBUGROI_IM:
-                debugroi_im = self.debugroi_image
             orig_points = self.last_points
             roi_display_left,roi_display_bottom = self.roi_display_lb
             self.new_image = False # reset for next pass
@@ -1364,6 +1338,8 @@ class Tracker(object):
 
             self.live_canvas.update_image_and_drawings(
                 'camera', im, format=format,
+                points=points,
+                linesegs=linesegs,
                 )
 
             if 1:
@@ -1375,11 +1351,3 @@ class Tracker(object):
                     )
                 if 1:
                     self.bgroi_canvas.Refresh(eraseBackground=False)
-            if DEBUGROI_IM:
-                self.debugroi_canvas.update_image_and_drawings(
-                    'camera', debugroi_im, format=format,
-                    points=points,
-                    linesegs=linesegs,
-                    )
-                if 1:
-                    self.debugroi_canvas.Refresh(eraseBackground=False)

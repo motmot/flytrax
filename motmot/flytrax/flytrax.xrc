@@ -360,18 +360,6 @@
               </object>
               <object class="sizeritem">
                 <object class="wxStaticBoxSizer">
-                  <label>Live diff</label>
-                  <orient>wxVERTICAL</orient>
-                  <object class="sizeritem">
-                    <object class="wxPanel" name="DIFF_VIEW_PANEL">
-                      <size>100,100</size>
-                    </object>
-                    <flag>wxEXPAND</flag>
-                  </object>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <object class="wxStaticBoxSizer">
                   <label>Live bg</label>
                   <orient>wxVERTICAL</orient>
                   <object class="sizeritem">
