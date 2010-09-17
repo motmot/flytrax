@@ -138,7 +138,6 @@
             <option>1</option>
             <flag>wxALIGN_CENTRE</flag>
           </object>
-
           <object class="sizeritem">
             <object class="wxBoxSizer">
               <orient>wxHORIZONTAL</orient>
@@ -160,7 +159,7 @@
           </object>
           <object class="sizeritem">
             <object class="wxCheckBox" name="TRACKING_ENABLED">
-              <label>Tracking enabled</label>
+              <label>Tracking enabled (send to ROS)</label>
               <checked>0</checked>
               <font>
                 <size>14</size>
@@ -258,8 +257,6 @@
                 <object class="wxStaticBoxSizer">
                   <label>realtime output control</label>
                   <orient>wxHORIZONTAL</orient>
-                  
-                  
                   <object class="sizeritem">
                     <object class="wxStaticText">
                       <label>ROS topic prefix:</label>
