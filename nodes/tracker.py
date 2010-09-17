@@ -7,8 +7,8 @@ import adskalman.adskalman as adskalman
 import threading
 
 FPS = 24.0
-DEATH_THRESHOLD = 10.0
-MAX_ACCEPT_DIST = 10.0
+DEATH_THRESHOLD = 20.0
+MAX_ACCEPT_DIST = 20.0
 Qsigma = 0.1
 Rsigma = 0.1
 
@@ -136,17 +136,40 @@ class Tracker(object):
         if len(distances):
             distances = np.array(distances) # NxM array (N = number of objects, M = number of detections)
 
-            closest_idxs = np.argmin(distances, axis=1)
+            closest_idxs = np.argmin(distances, axis=1) # for each object, find the distances
 
-            claimed_idxs = set()
+            by_obj = {}
             for i,obj in enumerate(self.tracked_objects):
                 closest_idx = closest_idxs[i]
                 closest_dist = distances[i, closest_idx]
                 if closest_dist <= MAX_ACCEPT_DIST:
-                    claimed_idxs.add( int(closest_idx) )
-                    obj.update( detections[ closest_idx ] )
-                else:
-                    obj.update( None )
+                    if closest_idx not in by_obj:
+                        by_obj[closest_idx] = {'dist':[],
+                                               'obj_num':[]}
+                    by_obj[closest_idx]['dist'].append( closest_dist )
+                    by_obj[closest_idx]['obj_num'].append( i )
+
+            # ensure there is only one use (the best one) of each observation
+            fed_objs = set()
+            claimed_idxs = set()
+
+            for closest_idx,mydict in by_obj.iteritems():
+                dists = np.array(mydict['dist'])
+                tmpi = np.argmin(dists)
+                obj_num = mydict['obj_num'][tmpi]
+
+                # take the best match and feed the object this data
+                assert obj_num not in fed_objs
+                obj = self.tracked_objects[obj_num]
+                claimed_idxs.add( int(closest_idx) )
+                obj.update( detections[ closest_idx ] )
+
+            # update any unfed objects
+            all_objs = set(range(len(self.tracked_objects)))
+            unfed_objs = all_objs - fed_objs
+            for unfed_obj in unfed_objs:
+                obj = self.tracked_objects[unfed_obj]
+                obj.update( None )
 
             all_idxs = set(range(len(detections)))
             unclaimed_idxs = all_idxs - claimed_idxs
