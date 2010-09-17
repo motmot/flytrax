@@ -505,7 +505,7 @@ class Tracker(object):
 
         self.ticks_since_last_update[cam_id] = 0
         lbrt = (0,0,max_width-1,max_height-1)
-        roi2_radius=61
+        roi2_radius=15
         self.max_num_points[cam_id]=SharedValue()
         self.max_num_points[cam_id].set(8)
         ra = realtime_image_analysis.RealtimeAnalyzer(lbrt,
@@ -535,6 +535,20 @@ class Tracker(object):
         ctrl.SetValue(str(self.max_num_points[cam_id].get_nowait()))
         validator.set_state('valid')
 
+
+        ctrl = xrc.XRCCTRL(per_cam_panel,"ROI2_RADIUS")
+        self.widget2cam_id[ctrl]=cam_id
+        validator = wxvt.setup_validated_integer_callback(
+            ctrl,
+            ctrl.GetId(),
+            self.OnROI2Radius,
+            ignore_initial_value=True)
+        self.xrcid2validator[cam_id]["ROI2_RADIUS"] = validator
+        ctrl.SetValue(str(roi2_radius))
+        validator.set_state('valid')
+
+        ra.clear_threshold = 0.8
+        ra.diff_threshold = 30
         self.clear_threshold_value[cam_id] = ra.clear_threshold
         self.clear_threshold_value[cam_id] = ra.diff_threshold
 
@@ -770,6 +784,19 @@ class Tracker(object):
             pass
         else:
             self.max_num_points[cam_id].set( newval )
+        event.Skip()
+
+    def OnROI2Radius(self,event):
+        widget = event.GetEventObject()
+        cam_id = self.widget2cam_id[widget]
+
+        newvalstr = widget.GetValue()
+        try:
+            newval = int(newvalstr)
+        except ValueError:
+            pass
+        else:
+            self.realtime_analyzer[cam_id].roi2_radius = newval
         event.Skip()
 
     def process_frame(self,cam_id,buf,buf_offset,timestamp,framenumber):

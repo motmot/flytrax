@@ -103,7 +103,24 @@
             <flag>wxALL|wxALIGN_CENTRE</flag>
             <border>2</border>
           </object>
-
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Software ROI radius:</label>
+                </object>
+                <flag>wxALL</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="ROI2_RADIUS">
+                  <value></value>
+                </object>
+              </object>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
           <object class="sizeritem">
             <object class="wxBoxSizer">
               <object class="sizeritem">
