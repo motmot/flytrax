@@ -45,9 +45,9 @@ except ImportError, err:
     have_ROS = False
 
 if have_ROS:
-    roslib.load_manifest('flytrax_ros')
-    import flytrax_ros
-    from flytrax_ros.msg import FlytraxInfo, Detection
+    roslib.load_manifest('flytrax')
+    import flytrax # the ROS package
+    from flytrax.msg import FlytraxInfo, Detection
     from sensor_msgs.msg import Image
     import rospy
     import rospy.core

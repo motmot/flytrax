@@ -1,15 +1,13 @@
 <package>
-  <description brief="flytrax_ros">
+  <description brief="flytrax">
 
-     flytrax_ros
+     flytrax
 
   </description>
   <author>Andrew Straw</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/flytrax_ros</url>
+  <url>http://ros.org/wiki/flytrax</url>
   <depend package="rospy"/>
   <depend package="sensor_msgs"/>
 </package>
-
-
