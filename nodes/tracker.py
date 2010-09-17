@@ -8,7 +8,7 @@ import threading
 
 FPS = 24.0
 DEATH_THRESHOLD = 20.0
-MAX_ACCEPT_DIST = 20.0
+MAX_ACCEPT_DIST = 50.0
 Qsigma = 0.1
 Rsigma = 0.1
 
@@ -135,17 +135,18 @@ class Tracker(object):
 
         if len(distances):
             distances = np.array(distances) # NxM array (N = number of objects, M = number of detections)
-
             closest_idxs = np.argmin(distances, axis=1) # for each object, find the distances
 
-            by_obj = {}
+            by_obj = {} # a dict whose keys are the detection indices
             for i,obj in enumerate(self.tracked_objects):
-                closest_idx = closest_idxs[i]
-                closest_dist = distances[i, closest_idx]
+                closest_idx = closest_idxs[i] # find the closest detection for this object
+                closest_dist = distances[i, closest_idx] # get its distance
                 if closest_dist <= MAX_ACCEPT_DIST:
                     if closest_idx not in by_obj:
                         by_obj[closest_idx] = {'dist':[],
                                                'obj_num':[]}
+
+                    # for this particular detection, save some info
                     by_obj[closest_idx]['dist'].append( closest_dist )
                     by_obj[closest_idx]['obj_num'].append( i )
 
@@ -159,10 +160,14 @@ class Tracker(object):
                 obj_num = mydict['obj_num'][tmpi]
 
                 # take the best match and feed the object this data
-                assert obj_num not in fed_objs
-                obj = self.tracked_objects[obj_num]
-                claimed_idxs.add( int(closest_idx) )
-                obj.update( detections[ closest_idx ] )
+                if obj_num not in fed_objs:
+                    # only update an object if it didn't already get data
+                    obj = self.tracked_objects[obj_num]
+                    claimed_idxs.add( int(closest_idx) )
+
+                    obj.update( detections[ closest_idx ] )
+                    fed_objs.add( obj_num )
+
 
             # update any unfed objects
             all_objs = set(range(len(self.tracked_objects)))
