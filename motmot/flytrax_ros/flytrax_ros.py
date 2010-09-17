@@ -23,7 +23,6 @@ from __future__ import division
 
 import sys, threading, Queue, time, socket, math, struct, os, warnings, re
 import pkg_resources
-import traxio
 
 import motmot.wxvideo.wxvideo as wxvideo
 import motmot.imops.imops as imops
@@ -53,7 +52,7 @@ if have_ROS:
     import rospy
     import rospy.core
 
-RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extraction
+RESFILE = pkg_resources.resource_filename(__name__,"flytrax_ros.xrc") # trigger extraction
 RES = xrc.EmptyXmlResource()
 RES.LoadFromString(open(RESFILE).read())
 BGROI_IM=True
