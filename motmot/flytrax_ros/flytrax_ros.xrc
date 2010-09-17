@@ -223,7 +223,7 @@
     </object>
   </object>
   <object class="wxFrame" name="FLYTRAX_FRAME">
-    <title>FlyTrax</title>
+    <title>Flytrax ROS</title>
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
