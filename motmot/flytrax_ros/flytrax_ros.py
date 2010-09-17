@@ -572,7 +572,7 @@ class Tracker(object):
         return BufferAllocator()
 
     def get_plugin_name(self):
-        return 'FlyTrax'
+        return 'FlyTrax ROS'
 
     def OnEditMask(self,event):
         widget = event.GetEventObject()
