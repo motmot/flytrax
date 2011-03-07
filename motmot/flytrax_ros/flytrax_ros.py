@@ -46,7 +46,7 @@ except ImportError, err:
 
 if have_ROS:
     roslib.load_manifest('flytrax')
-    import flytrax # the ROS package
+    import flytrax # the ROS package (hint: "rosmake flytrax")
     from flytrax.msg import FlytraxInfo, Detection
     from sensor_msgs.msg import Image
     import rospy
@@ -116,7 +116,7 @@ class Tracker(object):
         if have_ROS:
             self.publisher_lock = threading.Lock()
             self.publisher = None
-            rospy.init_node('flytrax',
+            rospy.init_node('fview', # common name across all plugins so multiple calls to init_node() don't fail
                             anonymous=True, # allow multiple instances to run
                             disable_signals=True, # let WX intercept them
                             )
