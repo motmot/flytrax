@@ -37,12 +37,24 @@ import motmot.FastImage.FastImage as FastImage
 import motmot.realtime_image_analysis.realtime_image_analysis as realtime_image_analysis
 
 import numpy
+import numpy as np
 
 import motmot.wxvalidatedtext.wxvalidatedtext as wxvt
 
 import wx
 from wx import xrc
 import scipy.io
+
+# ROS stuff ------------------------------
+import roslib
+have_ROS = True
+roslib.load_manifest('flymad')
+
+from flymad.msg import Raw2dPositions
+from geometry_msgs.msg import Pose2D
+import rospy
+import rospy.core
+# -----------------------------------------
 
 RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extraction
 RES = xrc.EmptyXmlResource()
@@ -271,6 +283,18 @@ class Tracker(trax_udp_sender.UDPSender):
         self.full_bg_image = {}
         self.xrcid2validator = {}
         self.max_num_points={}
+
+        #####
+        if have_ROS:
+            rospy.init_node('fview', # common name across all plugins so multiple calls to init_node() don't fail
+                            anonymous=True, # allow multiple instances to run
+                            disable_signals=True, # let WX intercept them
+                            )
+            self.publisher_lock = threading.Lock()
+            self.pub = rospy.Publisher( '/flymad/raw_2d_positions',
+                                        Raw2dPositions,
+                                        tcp_nodelay=True )
+
 
     def get_frame(self):
         return self.frame
@@ -1006,6 +1030,7 @@ class Tracker(trax_udp_sender.UDPSender):
             new_diff_threshold.clear()
 
         n_pts = 0
+        points = []
         if self.tracking_enabled[cam_id].isSet():
             max_num_points = self.max_num_points[cam_id].get_nowait()
             realtime_analyzer.max_num_points = max_num_points # AttributeError here means old realtime_image_analysis
@@ -1103,6 +1128,24 @@ class Tracker(trax_udp_sender.UDPSender):
         if len(self.last_detection_list) > history_buflen_value:
             self.last_detection_list = self.last_detection_list[-history_buflen_value:]
         draw_points.extend([p for p in self.last_detection_list if p is not None])
+
+        if have_ROS:
+            msg = Raw2dPositions()
+
+            msg.header.stamp.secs = int(np.floor(timestamp))
+            msg.header.stamp.nsecs = int((timestamp%1.0)*1e9)
+            msg.header.frame_id = "pixels"
+
+            msg.framenumber = framenumber
+            
+            for pt in points:
+                pose = Pose2D()
+                pose.x, pose.y = pt[:2]
+                pose.theta = np.nan
+                msg.points.append( pose )
+
+            self.pub.publish(msg)
+
         return draw_points, draw_linesegs
 
     def display_message(self,msg,duration_msec=2000):
