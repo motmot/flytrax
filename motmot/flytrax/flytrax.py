@@ -1348,7 +1348,10 @@ class Tracker(trax_udp_sender.UDPSender):
                 y1 = (height-y1)/height*yg+yo
                 y2 = (height-y2)/height*yg+yo
 
-                linesegs.append( (int(x1),int(y1),int(x2),int(y2)) )
+                seg = np.array([x1,y1,x2,y2])
+                if not np.any(np.isnan(seg)):
+                    seg = seg.astype(np.int)
+                    linesegs.append( seg )
 
             self.live_canvas.update_image_and_drawings(
                 'camera', im, format=format,
@@ -1366,7 +1369,7 @@ class Tracker(trax_udp_sender.UDPSender):
             if DEBUGROI_IM:
                 self.debugroi_canvas.update_image_and_drawings(
                     'camera', debugroi_im, format=format,
-                    points=points,
+                    points=[(int(p[0]),int(p[1])) for p in points],
                     linesegs=linesegs,
                     )
                 if 1:
