@@ -1129,7 +1129,7 @@ class Tracker(trax_udp_sender.UDPSender):
             self.last_detection_list = self.last_detection_list[-history_buflen_value:]
         draw_points.extend([p for p in self.last_detection_list if p is not None])
 
-        if have_ROS:
+        if self.tracking_enabled[cam_id].isSet() and have_ROS:
             msg = Raw2dPositions()
 
             msg.header.stamp.secs = int(np.floor(timestamp))
