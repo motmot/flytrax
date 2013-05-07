@@ -1139,9 +1139,14 @@ class Tracker(trax_udp_sender.UDPSender):
             msg.framenumber = framenumber
             
             for pt in points:
+                ox0,oy0,area,slope,eccentricity = pt[:5]
+
                 pose = Pose2D()
-                pose.x, pose.y = pt[:2]
-                pose.theta = np.nan
+                pose.x, pose.y = ox0, oy0
+                if eccentricity <= self.minimum_eccentricity:
+                    pose.theta = np.nan
+                else:
+                    pose.theta = np.arctan( slope )
                 msg.points.append( pose )
 
             self.pub.publish(msg)
