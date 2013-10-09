@@ -102,7 +102,7 @@ class LockedValue:
         return self._val
 
 class Tracker(trax_udp_sender.UDPSender):
-    def __init__(self,wx_parent):
+    def __init__(self,wx_parent,fview_options):
         self.wx_parent = wx_parent
         self.frame = RES.LoadFrame(self.wx_parent,"FLYTRAX_FRAME") # make frame main panel
 
@@ -290,7 +290,6 @@ class Tracker(trax_udp_sender.UDPSender):
                             anonymous=True, # allow multiple instances to run
                             disable_signals=True, # let WX intercept them
                             )
-            self.publisher_lock = threading.Lock()
             self.pub = rospy.Publisher( '/flymad/raw_2d_positions',
                                         Raw2dPositions,
                                         tcp_nodelay=True )
