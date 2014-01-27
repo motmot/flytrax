@@ -3,7 +3,7 @@ import os
 
 setup(name='motmot.flytrax',
      description='plugin for fview to perform 2D image tracking (part of the motmot camera packages)',
-     version='0.5.8',
+     version='0.6.0',
      license='BSD',
      author='Andrew Straw',
      author_email='strawman@astraw.com',
