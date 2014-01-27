@@ -45,17 +45,6 @@ import wx
 from wx import xrc
 import scipy.io
 
-# ROS stuff ------------------------------
-import roslib
-have_ROS = True
-roslib.load_manifest('flymad')
-
-from flymad.msg import Raw2dPositions
-from geometry_msgs.msg import Pose2D
-import rospy
-import rospy.core
-# -----------------------------------------
-
 RESFILE = pkg_resources.resource_filename(__name__,"flytrax.xrc") # trigger extraction
 RES = xrc.EmptyXmlResource()
 RES.LoadFromString(open(RESFILE).read())
@@ -104,6 +93,30 @@ class LockedValue:
 class Tracker(trax_udp_sender.UDPSender):
     def __init__(self,wx_parent,fview_options):
         self.wx_parent = wx_parent
+
+        self.have_ros = False
+        if fview_options.get('have_ros'):
+            try:
+                import roslib.packages
+                roslib.load_manifest('flymad')
+                import rospy
+                import geometry_msgs.msg
+                import flymad.msg
+
+                self.pub_position = rospy.Publisher(
+                                            '/flymad/raw_2d_positions',
+                                            flymad.msg.Raw2dPositions,
+                                            tcp_nodelay=True )
+                self.pub_position_class = flymad.msg.Raw2dPositions
+                self.pub_pose_class = geometry_msgs.msg.Pose2D
+
+                self.have_ros = True
+            except roslib.packages.InvalidROSPkgException:
+                pass
+
+        if not self.have_ros:
+            self.pub_position = None
+
         self.frame = RES.LoadFrame(self.wx_parent,"FLYTRAX_FRAME") # make frame main panel
 
         trax_udp_sender.UDPSender.__init__(self,self.frame)
@@ -283,17 +296,6 @@ class Tracker(trax_udp_sender.UDPSender):
         self.full_bg_image = {}
         self.xrcid2validator = {}
         self.max_num_points={}
-
-        #####
-        if have_ROS:
-            rospy.init_node('fview', # common name across all plugins so multiple calls to init_node() don't fail
-                            anonymous=True, # allow multiple instances to run
-                            disable_signals=True, # let WX intercept them
-                            )
-            self.pub = rospy.Publisher( '/flymad/raw_2d_positions',
-                                        Raw2dPositions,
-                                        tcp_nodelay=True )
-
 
     def get_frame(self):
         return self.frame
@@ -1128,8 +1130,9 @@ class Tracker(trax_udp_sender.UDPSender):
             self.last_detection_list = self.last_detection_list[-history_buflen_value:]
         draw_points.extend([p for p in self.last_detection_list if p is not None])
 
-        if self.tracking_enabled[cam_id].isSet() and have_ROS:
-            msg = Raw2dPositions()
+        if self.tracking_enabled[cam_id].isSet() and self.have_ros:
+
+            msg = self.pub_position_class()
 
             msg.header.stamp.secs = int(np.floor(timestamp))
             msg.header.stamp.nsecs = int((timestamp%1.0)*1e9)
@@ -1140,7 +1143,7 @@ class Tracker(trax_udp_sender.UDPSender):
             for pt in points:
                 ox0,oy0,area,slope,eccentricity = pt[:5]
 
-                pose = Pose2D()
+                pose = self.pub_pose_class()
                 pose.x, pose.y = ox0, oy0
                 if eccentricity <= self.minimum_eccentricity:
                     pose.theta = np.nan
@@ -1148,7 +1151,7 @@ class Tracker(trax_udp_sender.UDPSender):
                     pose.theta = np.arctan( slope )
                 msg.points.append( pose )
 
-            self.pub.publish(msg)
+            self.pub_position.publish(msg)
 
         return draw_points, draw_linesegs
 
